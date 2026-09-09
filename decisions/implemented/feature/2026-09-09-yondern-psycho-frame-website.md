@@ -55,8 +55,8 @@ Cloudflare 免费带宽无上限，域名也已托管于 Cloudflare DNS。
 - 官网内容零手工维护：源文档改动后 `docs:build` 自动同步，无第二事实源。
 - 生成物不被门禁误伤：全部相对链接已重写为官网绝对路径或 GitHub 直链，天然通过
   verify 的链接检查；手写页面的链接同样被门禁覆盖。
-- GitHub org `yondern` 与仓库 URL 尚未创建，官网链接与 workflow 暂用规划地址，
-  创建后无需改代码（repoBase 在 sync 脚本单点定义）。
+- GitHub org `yondren` / 仓库 `yondern-psycho-frame`；官网链接与 workflow 使用该地址
+  （repoBase 在 sync 脚本单点定义）。
 - 大陆可达性由 Cloudflare 边缘承载；故障时把 DNS 切回"仅 DNS"即回纯 GitHub Pages。
 - 全链路零密钥：加速层只涉 DNS 代理与缓存规则，无 API token 入 Git 或 CI。
 - 自定义域名启用时须同步把 docs.yml 的 `DOCS_BASE` 改为 `/`（切换点见 workflow 注释与

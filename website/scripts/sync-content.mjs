@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 
 const websiteRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const repoRoot = path.resolve(websiteRoot, '..')
-const repoBase = 'https://github.com/yondern/yondern-psycho-frame/blob/main'
+const repoBase = 'https://github.com/yondren/yondern-psycho-frame/blob/main'
 
 // 源文件（相对仓库根）→ 官网页（相对 website/，不含扩展名）+ 页面标题
 const MAP = [

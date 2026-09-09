@@ -22,7 +22,7 @@ Status: implemented
 - 业务代码 `apps/` 与相关 decisions/tasks/reports 不随新项目迁移，保留在 codeup
   全历史备份。
 - 许可证 MIT；包名暂不取 scope（@yondern 需 npm 组织，阻塞首发），后续可迁移。
-- 托管与远端：主远端 GitHub org `yondern` / 仓库 `yondern-psycho-frame`（origin）；codeup
+- 托管与远端：主远端 GitHub org `yondren` / 仓库 `yondern-psycho-frame`（origin）；codeup
   保留为备份远端（远端名 `codeup`）：`main` 冻结全量开发历史，`mirror` 同步开源历史；
   日常推送 `git push origin main` + `git push codeup main:mirror`。
 - npm 包元数据（repository / homepage / bugs）与根 package.json 的 license 字段指向

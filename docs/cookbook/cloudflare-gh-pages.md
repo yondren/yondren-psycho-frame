@@ -4,11 +4,11 @@
 `psycho-frame.yondern.com` 经 Cloudflare 代理获得边缘加速；域名已托管于 Cloudflare DNS。
 加速只动 DNS 与缓存，部署目标不变，故障时把代理切回"仅 DNS"即可回滚。
 
-前置条件：仓库已存在于 `github.com/yondern/yondern-psycho-frame` 且 Pages workflow 已跑通。
+前置条件：仓库已存在于 `github.com/yondren/yondern-psycho-frame` 且 Pages workflow 已跑通。
 
 ## 1. 添加代理 CNAME
 
-Cloudflare → DNS → 添加记录：类型 `CNAME`、名称 `psycho-frame`、目标 `yondern.github.io`、
+Cloudflare → DNS → 添加记录：类型 `CNAME`、名称 `psycho-frame`、目标 `yondren.github.io`、
 代理状态开启（橙色云）。
 
 验证：`dig +short psycho-frame.yondern.com` 返回 Cloudflare 边缘 IP（而非 GitHub 的 IP）。

@@ -16,7 +16,7 @@ export default defineConfig({
       { text: '指南', link: '/guide/getting-started' },
       { text: '参考', link: '/reference/cli' },
       { text: 'npm', link: 'https://www.npmjs.com/package/yondern-psycho-frame' },
-      { text: 'GitHub', link: 'https://github.com/yondern/yondern-psycho-frame' },
+      { text: 'GitHub', link: 'https://github.com/yondren/yondern-psycho-frame' },
     ],
     sidebar: [
       {
@@ -32,6 +32,7 @@ export default defineConfig({
           { text: '执行报告', link: '/guide/reports' },
           { text: 'Cookbook', link: '/guide/cookbook' },
           { text: '并行 worktree 工作流', link: '/guide/parallel-worktrees' },
+          { text: 'GitHub Pages + Cloudflare 加速', link: '/guide/cloudflare-gh-pages' },
           { text: 'Postmortem', link: '/guide/postmortem' },
         ],
       },
