@@ -1,6 +1,6 @@
 {
   "name": "create-yondren-psycho-frame",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "npm create 入口：以 yondren-psycho-frame 模板脚手架新项目（npm create yondren-psycho-frame）。",
   "license": "MIT",
   "repository": {

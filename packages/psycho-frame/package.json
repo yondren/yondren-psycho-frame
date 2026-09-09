@@ -1,6 +1,6 @@
 {
   "name": "yondren-psycho-frame",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "见山处（Yondren）精神力骨架开发框架：文档优先的工程骨架，任务/决策/报告/事实四层分离，门禁机器可校验，零运行时依赖。",
   "license": "MIT",
   "repository": {
