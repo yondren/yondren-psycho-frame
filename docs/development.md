@@ -45,6 +45,6 @@
   bump/commit/tag，`--publish` 才发布、`--push` 才推送、`--preview` 只读预览。
 - 私有性：根 package.json 与模板 package.json 带 `private`，发布包不带。
 - 版本：semver；门禁脚本与模板的破坏性变更升 major，doctor 负责提示漂移。
-- 顺序：脚本按依赖序先 `yondern-psycho-frame` 后 `create-yondern-psycho-frame`，两包锁步同版本。
+- 顺序：脚本按依赖序先 `yondren-psycho-frame` 后 `create-yondren-psycho-frame`，两包锁步同版本。
 - 升级：发布新版后，旧版 CLI 在交互终端运行任意命令时提示 `self-upgrade`（行为见
   [psycho-frame README](../packages/psycho-frame/README.md)）。

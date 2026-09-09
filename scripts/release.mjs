@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// release.mjs：yondern-psycho-frame 两包锁步发布脚本（零依赖，Node ≥ 18.20）。
+// release.mjs：yondren-psycho-frame 两包锁步发布脚本（零依赖，Node ≥ 18.20）。
 // 用法：pnpm release <major|minor|patch|premajor|preminor|prepatch|prerelease|X.Y.Z>
 //              [--preview] [--publish] [--push]
 // 步骤：预检 → pnpm install → bump 两包 + 模板 pin → verify/doctor → pack 预检
@@ -11,10 +11,10 @@ import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-const CORE = 'yondern-psycho-frame'
-const SHIM = 'create-yondern-psycho-frame'
+const CORE = 'yondren-psycho-frame'
+const SHIM = 'create-yondren-psycho-frame'
 const CORE_PKG = path.join('packages', 'psycho-frame', 'package.json')
-const SHIM_PKG = path.join('packages', 'create-yondern-psycho-frame', 'package.json')
+const SHIM_PKG = path.join('packages', 'create-yondren-psycho-frame', 'package.json')
 const TEMPLATE_PKG = path.join('packages', 'psycho-frame', 'template', 'package.json')
 const BUMP_TYPES = ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease']
 const SEMVER_RE = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/
@@ -140,7 +140,7 @@ const topR = run('git', ['rev-parse', '--show-toplevel'])
 if (topR.status !== 0) fail('不在 git 仓库内；请在仓库 checkout 中运行')
 const root = topR.stdout.trim()
 const scriptPkg = readJson('package.json')
-if (scriptPkg.name !== 'yondern-psycho-frame-workspace') {
+if (scriptPkg.name !== 'yondren-psycho-frame-workspace') {
   fail(`git 根 ${root} 不是本仓库（root package 名为 ${scriptPkg.name}）`)
 }
 

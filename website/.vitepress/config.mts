@@ -6,8 +6,8 @@ const base = process.env.DOCS_BASE ?? '/'
 
 export default defineConfig({
   lang: 'zh-CN',
-  title: 'yondern-psycho-frame',
-  description: '见山处（Yondern）精神力骨架开发框架：文档优先的工程骨架，任务、决策、报告、事实四层分离，门禁机器可校验。',
+  title: 'yondren-psycho-frame',
+  description: '见山处（Yondren）精神力骨架开发框架：文档优先的工程骨架，任务、决策、报告、事实四层分离，门禁机器可校验。',
   base,
   srcDir: './src',
   cleanUrls: true,
@@ -15,7 +15,7 @@ export default defineConfig({
     nav: [
       { text: '指南', link: '/guide/getting-started' },
       { text: '参考', link: '/reference/cli' },
-      { text: 'npm', link: 'https://www.npmjs.com/package/yondern-psycho-frame' },
+      { text: 'npm', link: 'https://www.npmjs.com/package/yondren-psycho-frame' },
       { text: 'GitHub', link: 'https://github.com/yondren/yondren-psycho-frame' },
     ],
     sidebar: [
@@ -47,7 +47,7 @@ export default defineConfig({
       provider: 'local',
     },
     footer: {
-      message: 'MIT 许可 · Yondern（见山处）',
+      message: 'MIT 许可 · Yondren（见山处）',
     },
   },
 })

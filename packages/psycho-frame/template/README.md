@@ -1,6 +1,6 @@
 # {{PROJECT_NAME}}
 
-基于 [yondern-psycho-frame](https://www.npmjs.com/package/yondern-psycho-frame)
+基于 [yondren-psycho-frame](https://www.npmjs.com/package/yondren-psycho-frame)
 （见山处精神力骨架开发框架）的文档优先工程：知识全部以 Markdown + Git 承载，
 任务、决策、报告三者分离，门禁机器可校验。
 

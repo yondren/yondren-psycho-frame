@@ -6,11 +6,16 @@
 ## 1. 改了哪些文件
 
 - 更新 package.json（根：license: MIT）、packages/psycho-frame/package.json 与
-  packages/create-yondern-psycho-frame/package.json（repository/homepage/bugs 指向
+  packages/create-yondren-psycho-frame/package.json（repository/homepage/bugs 指向
   GitHub 与官网）。
 - 更新 AGENTS.md（任务与并行增推送常驻命令）、
   decisions/implemented/architecture/2026-09-09-yondern-psycho-frame-oss.md（远端拓扑、
   历史策略、备选方案、后果）。
+- 品牌与命名统一为 Yondren / yondren-psycho-frame：git mv 入口包目录、两包 package.json
+  名称与元数据、release.mjs 常量、self-update 提示、模板 devDependency 与模板文档、
+  根 workspace 名与 filter、官网标题/导航/hero、LICENSE 版权行、官网域名
+  psycho-frame.yondren.com；新增
+  [decisions/implemented/architecture/2026-09-10-yondren-naming.md](../decisions/implemented/architecture/2026-09-10-yondren-naming.md)。
 - 新增 tasks/2026-09-10-github-launch.md 与本报告。
 
 ## 2. 实现了什么
@@ -53,9 +58,11 @@
   `node-version: 20` 导致 build 任务在 setup-node 步骤崩溃；已改 `node-version: 22`，
   docs/development.md 环境要求同步修正（包 engines 对消费者仍为 ≥ 18.20）。
 - 线上 assets 404 根因：GitHub 仓库实际名为 `yondren-psycho-frame`（org `yondren`），
-  而 DOCS_BASE 仍按旧名 `/yondern-psycho-frame/` 烘焙进 HTML 绝对路径 → 仓库路径引用
-  已全部对齐仓库名（DOCS_BASE、repoBase、包元数据 URL、cookbook、官网链接、远端 URL），
-  npm 包名与品牌 `yondern-psycho-frame` 保持不变。
+  而 DOCS_BASE 当时仍按旧名 `/yondern-psycho-frame/` 烘焙进 HTML 绝对路径 → 仓库路径引用
+  已全部对齐仓库名（DOCS_BASE、repoBase、包元数据 URL、cookbook、官网链接、远端 URL）。
+- 品牌与 npm 包名随仓库名统一为 yondren-psycho-frame（决策：
+  [../decisions/implemented/architecture/2026-09-10-yondren-naming.md](../decisions/implemented/architecture/2026-09-10-yondren-naming.md)）；
+  历史决策/任务/报告文件名保留 yondern 拼写。
 - 沙箱网络无法直达 github.io（DNS 被代理到 198.18.x），线上验证以浏览器与 API
   部署记录为准：deploy-pages 两次 success，站点 URL 为
   yondren.github.io/yondren-psycho-frame/。
@@ -64,15 +71,18 @@
 
 - 决策：[decisions/implemented/architecture/2026-09-09-yondern-psycho-frame-oss.md](../decisions/implemented/architecture/2026-09-09-yondern-psycho-frame-oss.md)
   已更新（Decision 增托管与远端、npm 元数据条目；Alternatives 增全量直推与 filter-repo
-  否决；Consequences 增双远端契约）。
+  否决；Consequences 增双远端契约）；
+  [decisions/implemented/architecture/2026-09-10-yondren-naming.md](../decisions/implemented/architecture/2026-09-10-yondren-naming.md)
+  新增（命名修订与 npm 迁移）。
 - 文档：AGENTS.md 推送常驻命令已同步。
 - 任务：[tasks/2026-09-10-github-launch.md](../tasks/2026-09-10-github-launch.md)。
 
 ## 6. 还剩什么阻塞
 
-- 仓库 yondren/yondren-psycho-frame 已公开，Pages（GitHub Actions 源）已部署成功；等待
-  仓库名对齐后的最新部署在 yondren.github.io/yondren-psycho-frame/ 全量生效（浏览器验证）。
-- 仓库名与品牌名不同（仓库 yondren-psycho-frame、npm 包 yondern-psycho-frame）：仓库路径
-  引用已按仓库名对齐，包名与品牌保持不变。
+- 仓库 yondren/yondren-psycho-frame 已公开，Pages（GitHub Actions 源）部署成功
+  （deploy-pages 两次 success）；改名后的最新部署待浏览器在
+  yondren.github.io/yondren-psycho-frame/ 验证。
+- npm 迁移待维护者执行：新名包 yondren-psycho-frame / create-yondren-psycho-frame 按
+  0.3.0 发布，旧包 `npm deprecate` 指路新名（凭据不进仓库与报告）。
 - ~/.ssh/known_hosts 不可写：已用 config 的 `accept-new` 规避，连接正常但主机密钥不入
   known_hosts，每次首连仅告警。

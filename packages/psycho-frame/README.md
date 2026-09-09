@@ -1,17 +1,17 @@
-# yondern-psycho-frame
+# yondren-psycho-frame
 
-见山处（Yondern）精神力骨架开发框架：文档优先的工程骨架，任务、决策、报告、事实四层
+见山处（Yondren）精神力骨架开发框架：文档优先的工程骨架，任务、决策、报告、事实四层
 分离，门禁机器可校验。零运行时依赖（仅 Node ≥ 18.20 内置模块），任何新项目或旧项目都
 可安装。
 
 ## 安装
 
 ```sh
-npm create yondern-psycho-frame@latest   # 新项目脚手架（等价 npx ... init）
-npx yondern-psycho-frame init 目录        # 新项目：目标目录须为空
-npx yondern-psycho-frame adopt 目录       # 旧项目：只增不改，绝不覆盖既有文件
-npm install -g yondern-psycho-frame       # 全局安装：任意目录可用，self-upgrade 自动升级
-pnpm add -D yondern-psycho-frame          # 作为 devDependency，门禁随版本升级
+npm create yondren-psycho-frame@latest   # 新项目脚手架（等价 npx ... init）
+npx yondren-psycho-frame init 目录        # 新项目：目标目录须为空
+npx yondren-psycho-frame adopt 目录       # 旧项目：只增不改，绝不覆盖既有文件
+npm install -g yondren-psycho-frame       # 全局安装：任意目录可用，self-upgrade 自动升级
+pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版本升级
 ```
 
 交互终端运行任意命令时静默检查最新版本并在有新版时提示（24h 节流、离线静默、

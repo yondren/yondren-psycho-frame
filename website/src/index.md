@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: yondern-psycho-frame
+  name: yondren-psycho-frame
   text: 见山处精神力骨架开发框架
   tagline: 文档优先的工程骨架——任务、决策、报告、事实四层分离，门禁机器可校验，零运行时依赖。
   actions:

@@ -3,7 +3,7 @@
 ## 环境
 
 - Node.js ≥ 18.20，Git ≥ 2.26（worktree 级配置需要）；pnpm ≥ 10（npm/yarn 亦可）。
-- 门禁由 [yondern-psycho-frame](https://www.npmjs.com/package/yondern-psycho-frame)
+- 门禁由 [yondren-psycho-frame](https://www.npmjs.com/package/yondren-psycho-frame)
   提供，零依赖；`pnpm install` 一次后即可用。
 
 ## 日常顺序

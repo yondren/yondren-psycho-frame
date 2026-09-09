@@ -7,7 +7,7 @@
 
 - 产品层：[packages/psycho-frame](../packages/psycho-frame/README.md)（门禁 verify-docs/
   change-scope + CLI + 模板 template/）、
-  [packages/create-yondern-psycho-frame](../packages/create-yondern-psycho-frame/README.md)
+  [packages/create-yondren-psycho-frame](../packages/create-yondren-psycho-frame/README.md)
   （npm create 入口，转发 init）。
 - 自举层：`docs/`（当前事实）、`decisions/`（理由）、`tasks/`（状态）、`reports/`（过程）；
   仓库按产品的方式组织自身文档，即模板 `template/` 的源头。

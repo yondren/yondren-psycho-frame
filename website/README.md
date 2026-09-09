@@ -1,6 +1,6 @@
 # 官网
 
-yondern-psycho-frame 的官方站点（VitePress）。指南与参考页由
+yondren-psycho-frame 的官方站点（VitePress）。指南与参考页由
 [scripts/sync-content.mjs](scripts/sync-content.mjs) 从仓库权威文档生成
 （生成物 `src/guide/`、`src/reference/` 不入 Git），手写内容只有首页、VitePress 配置
 与本说明——官网不产生第二份事实源。

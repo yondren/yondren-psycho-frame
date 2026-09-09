@@ -35,7 +35,7 @@ function gitToplevel(cwd) {
   }
 }
 
-const USAGE = `psycho-frame ${version} — 见山处（Yondern）精神力骨架开发框架
+const USAGE = `psycho-frame ${version} — 见山处（Yondren）精神力骨架开发框架
 
 用法: psycho-frame <命令> [参数]
 

@@ -8,9 +8,9 @@ importers:
 
   .: {}
 
-  packages/create-yondern-psycho-frame:
+  packages/create-yondren-psycho-frame:
     dependencies:
-      yondern-psycho-frame:
+      yondren-psycho-frame:
         specifier: workspace:^
         version: link:../psycho-frame
 

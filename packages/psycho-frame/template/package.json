@@ -9,6 +9,6 @@
     "doctor": "psycho-frame doctor"
   },
   "devDependencies": {
-    "yondern-psycho-frame": "^0.3.0"
+    "yondren-psycho-frame": "^0.3.0"
   }
 }

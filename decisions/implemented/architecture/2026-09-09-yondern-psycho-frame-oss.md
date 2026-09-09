@@ -11,8 +11,10 @@ Status: implemented
 ## Decision
 
 - 品牌与命名：Yondern（见山处），项目 yondern-psycho-frame（精神力骨架开发框架）。
+  本条已由 [2026-09-10-yondren-naming.md](2026-09-10-yondren-naming.md) 修订为
+  Yondren / yondren-psycho-frame，原文作为历史保留。
 - 仓库改为 pnpm monorepo：`packages/psycho-frame`（门禁 + CLI + 模板，主包
-  yondern-psycho-frame）、`packages/create-yondern-psycho-frame`（npm create 入口，转发 init）。
+  yondren-psycho-frame）、`packages/create-yondren-psycho-frame`（npm create 入口，转发 init）。
 - CLI 七命令：verify / scope（别名 change-scope）/ mode / upgrade / init / adopt / doctor；
   零依赖，仅用 Node ≥ 18.20 内置模块。
 - 门禁泛化：仓库根 = cwd 的 git toplevel（无 git 回退 cwd）；决策类别、任务状态、字数
@@ -52,7 +54,9 @@ Status: implemented
 
 - 消费方三选一：npm create（新项目）、adopt（旧项目）、devDependency（门禁随 semver 升级）。
 - 仓库自身即模板源头：docs/ 与 template/ 的漂移由 doctor 与 init/adopt 冒烟测试看护。
-- 发布前需在 npm 注册 yondern-psycho-frame 与 create-yondern-psycho-frame 两个包名。
+- npm registry：旧名 yondern-psycho-frame / create-yondern-psycho-frame 已发布（0.3.0）；
+  新名 yondren-psycho-frame / create-yondren-psycho-frame 由维护者发布，旧包 deprecate
+  指路（见 [2026-09-10-yondren-naming.md](2026-09-10-yondren-naming.md)）。
 - 两远端历史不同源：codeup main 为全历史备份（冻结），mirror 为开源历史镜像；
   重写已推历史仍受租约保护。
 - npm 页面与 issue 入口指向 GitHub 仓库与官网。

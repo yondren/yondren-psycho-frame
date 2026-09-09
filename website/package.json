@@ -1,8 +1,8 @@
 {
-  "name": "yondern-psycho-frame-website",
+  "name": "yondren-psycho-frame-website",
   "version": "0.1.0",
   "private": true,
-  "description": "yondern-psycho-frame 官网：VitePress 站点，指南/参考内容由仓库权威文档生成。",
+  "description": "yondren-psycho-frame 官网：VitePress 站点，指南/参考内容由仓库权威文档生成。",
   "scripts": {
     "sync": "node scripts/sync-content.mjs",
     "docs:dev": "node scripts/sync-content.mjs && vitepress dev",

@@ -191,7 +191,7 @@ export async function selfUpgrade({
   }
   const newer = compareVersions(latestVersion, currentVersion) > 0
   if (checkOnly) {
-    stdout(`yondern-psycho-frame：当前 v${currentVersion}，最新 v${latestVersion}`)
+    stdout(`yondren-psycho-frame：当前 v${currentVersion}，最新 v${latestVersion}`)
     return newer ? 1 : 0
   }
   if (!newer) {

@@ -1,15 +1,15 @@
-# yondern-psycho-frame
+# yondren-psycho-frame
 
-见山处（Yondern）精神力骨架开发框架：文档优先的工程骨架，任务、决策、报告、事实四层
+见山处（Yondren）精神力骨架开发框架：文档优先的工程骨架，任务、决策、报告、事实四层
 分离，门禁机器可校验，零运行时依赖。任何新项目或旧项目都可以通过 npm 安装使用。
 
 ## 安装
 
 ```sh
-npm create yondern-psycho-frame@latest   # 新项目
-npx yondern-psycho-frame init 目录        # 等价脚手架
-npx yondern-psycho-frame adopt 目录       # 旧项目：只增不改
-pnpm add -D yondern-psycho-frame          # devDependency，门禁随版本升级
+npm create yondren-psycho-frame@latest   # 新项目
+npx yondren-psycho-frame init 目录        # 等价脚手架
+npx yondren-psycho-frame adopt 目录       # 旧项目：只增不改
+pnpm add -D yondren-psycho-frame          # devDependency，门禁随版本升级
 ```
 
 ## 命令
@@ -28,7 +28,7 @@ pnpm add -D yondern-psycho-frame          # devDependency，门禁随版本升�
 | 路径 | 职责 |
 | --- | --- |
 | [packages/psycho-frame/](packages/psycho-frame/README.md) | 核心包：门禁 + CLI + 模板 |
-| [packages/create-yondern-psycho-frame/](packages/create-yondern-psycho-frame/README.md) | npm create 入口包 |
+| [packages/create-yondren-psycho-frame/](packages/create-yondren-psycho-frame/README.md) | npm create 入口包 |
 | `docs/` `decisions/` `tasks/` `reports/` | 本仓库自举使用的知识四层 |
 | [.psycho-frame.json](.psycho-frame.json) | 门禁配置 |
 | [website/](website/README.md) | 官网（VitePress，内容由仓库文档生成） |

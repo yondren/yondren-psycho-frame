@@ -7,7 +7,7 @@
 - 知识层：`docs/`（当前事实）、`decisions/`（理由）、`tasks/`（状态）、`reports/`（过程）。
 - 业务层：`apps/`（可选；pnpm workspace 或任意技术栈，模块契约写模块 README）。
 - 指令层：根 `AGENTS.md` + 子树 `AGENTS.md`，Agent 按当前目录自动收到对应规则。
-- 门禁层：由 [yondern-psycho-frame](https://www.npmjs.com/package/yondern-psycho-frame)
+- 门禁层：由 [yondren-psycho-frame](https://www.npmjs.com/package/yondren-psycho-frame)
   包提供（verify / scope / mode / upgrade / self-upgrade / doctor），本仓库配置在
   [.psycho-frame.json](../.psycho-frame.json)。
 

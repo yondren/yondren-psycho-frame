@@ -1,7 +1,7 @@
 # 文档标准
 
 本文件定义文档分层、书写规则与反腐化自查清单。写作或审查文档前先读本文件；
-机器门禁为 `pnpm verify:docs`（由 [yondern-psycho-frame](https://www.npmjs.com/package/yondern-psycho-frame)
+机器门禁为 `pnpm verify:docs`（由 [yondren-psycho-frame](https://www.npmjs.com/package/yondren-psycho-frame)
 包内的 verify-docs.mjs 实现）。
 
 ## 分层：每个事实只有一个家
