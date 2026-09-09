@@ -82,7 +82,7 @@
 - 仓库 yondren/yondren-psycho-frame 已公开，Pages（GitHub Actions 源）部署成功
   （deploy-pages 两次 success）；改名后的最新部署待浏览器在
   yondren.github.io/yondren-psycho-frame/ 验证。
-- npm 迁移待维护者执行：新名包 yondren-psycho-frame / create-yondren-psycho-frame 按
-  0.3.0 发布，旧包 `npm deprecate` 指路新名（凭据不进仓库与报告）。
+- npm 迁移已发布：新名包 yondren-psycho-frame / create-yondren-psycho-frame 0.3.1 已上
+  registry（维护者另账号执行）；旧包 `npm deprecate` 指路待执行。
 - ~/.ssh/known_hosts 不可写：已用 config 的 `accept-new` 规避，连接正常但主机密钥不入
   known_hosts，每次首连仅告警。

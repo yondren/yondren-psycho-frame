@@ -38,8 +38,8 @@ yondern-psycho-frame）长期混淆安装命令与仓库地址，npm 页面与 G
 
 - 消费方命令为 `npm create yondren-psycho-frame@latest`、`npx yondren-psycho-frame`
   等；旧包 deprecate 消息指路新名。
-- npm registry 上旧包名保留（0.3.0）；新名包发布由维护者执行，发布前安装命令指向的
-  新包名不可用。
+- npm registry 上旧包名保留（0.3.0）并 deprecate 指路新名；新名包已发布 0.3.1，
+  安装命令指向新名可用。
 - 官网域名切换为 psycho-frame.yondren.com（cookbook 步骤同步更新）；自定义域名启用前
   GitHub Pages 项目页（yondren.github.io/yondren-psycho-frame/）照常服务。
 - 历史决策/任务/报告文件名保留 yondern 拼写，与活跃文档的 yondren 拼写并存，分界为本记录。
