@@ -4,7 +4,7 @@
 `psycho-frame.yondern.com` 经 Cloudflare 代理获得边缘加速；域名已托管于 Cloudflare DNS。
 加速只动 DNS 与缓存，部署目标不变，故障时把代理切回"仅 DNS"即可回滚。
 
-前置条件：仓库已存在于 `github.com/yondren/yondern-psycho-frame` 且 Pages workflow 已跑通。
+前置条件：仓库已存在于 `github.com/yondren/yondren-psycho-frame` 且 Pages workflow 已跑通。
 
 ## 1. 添加代理 CNAME
 
@@ -37,9 +37,9 @@ Cloudflare → Caching → Cache Rules 添加两条：
 ## 5. 基路径切为根路径
 
 自定义域名下 Pages 以根路径发布：把 [docs.yml](../../.github/workflows/docs.yml) 中
-`DOCS_BASE` 从 `/yondern-psycho-frame/` 改为 `/`，提交并等待 workflow 重新部署。
+`DOCS_BASE` 从 `/yondren-psycho-frame/` 改为 `/`，提交并等待 workflow 重新部署。
 
-验证：首页与任意子页直接访问均 200，站内链接不含 `/yondern-psycho-frame/` 前缀。
+验证：首页与任意子页直接访问均 200，站内链接不含 `/yondren-psycho-frame/` 前缀。
 
 ## 6. 回滚演练
 

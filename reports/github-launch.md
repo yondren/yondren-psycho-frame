@@ -18,7 +18,7 @@
 - 开源就绪审计：工作树与全部 53 个提交无凭据/敏感文件/个人路径；.gitignore 覆盖完整；
   MIT 许可齐备；历史含 apps/ 业务代码（22/53 提交）→ 按确认的方案 B，GitHub 首发用
   当前树单提交，codeup 保留全历史。
-- 远端拓扑：origin 切换为 GitHub（yondren/yondern-psycho-frame），codeup 降级为备份
+- 远端拓扑：origin 切换为 GitHub（yondren/yondren-psycho-frame），codeup 降级为备份
   远端：main 冻结全历史、mirror 同步开源历史；日常双推。
 - npm 元数据补齐，开源后 npm 页面与 issue 入口落在 GitHub。
 
@@ -28,7 +28,7 @@
 - `node packages/psycho-frame/src/cli.mjs scope --base main`、`verify`（worktree 与
   main 各一次）
 - 远端与分支手术：`git remote rename origin codeup`、`git remote add origin
-  git@github.com:yondren/yondern-psycho-frame.git`、`git branch -m main legacy`、
+  git@github.com:yondren/yondren-psycho-frame.git`、`git branch -m main legacy`、
   `git checkout --orphan main` + 当前树单提交
 - `git push codeup legacy:main`（fast-forward 全历史）、`git push codeup main:mirror`
   （新分支镜像）
@@ -52,6 +52,13 @@
 - CI 失败根因：pnpm 11.20.0 要求 Node ≥ 22.13（依赖 node:sqlite），workflow 原
   `node-version: 20` 导致 build 任务在 setup-node 步骤崩溃；已改 `node-version: 22`，
   docs/development.md 环境要求同步修正（包 engines 对消费者仍为 ≥ 18.20）。
+- 线上 assets 404 根因：GitHub 仓库实际名为 `yondren-psycho-frame`（org `yondren`），
+  而 DOCS_BASE 仍按旧名 `/yondern-psycho-frame/` 烘焙进 HTML 绝对路径 → 仓库路径引用
+  已全部对齐仓库名（DOCS_BASE、repoBase、包元数据 URL、cookbook、官网链接、远端 URL），
+  npm 包名与品牌 `yondern-psycho-frame` 保持不变。
+- 沙箱网络无法直达 github.io（DNS 被代理到 198.18.x），线上验证以浏览器与 API
+  部署记录为准：deploy-pages 两次 success，站点 URL 为
+  yondren.github.io/yondren-psycho-frame/。
 
 ## 5. 文档与决策是否同步
 
@@ -63,8 +70,9 @@
 
 ## 6. 还剩什么阻塞
 
-- 仓库 yondren/yondern-psycho-frame 已公开；Pages 尚未启用（pages API 404）：在
-  Settings → Pages → Source 选 GitHub Actions 后，docs.yml 的部署步骤才会成功，
-  站点落在 yondren.github.io/yondern-psycho-frame/。
+- 仓库 yondren/yondren-psycho-frame 已公开，Pages（GitHub Actions 源）已部署成功；等待
+  仓库名对齐后的最新部署在 yondren.github.io/yondren-psycho-frame/ 全量生效（浏览器验证）。
+- 仓库名与品牌名不同（仓库 yondren-psycho-frame、npm 包 yondern-psycho-frame）：仓库路径
+  引用已按仓库名对齐，包名与品牌保持不变。
 - ~/.ssh/known_hosts 不可写：已用 config 的 `accept-new` 规避，连接正常但主机密钥不入
   known_hosts，每次首连仅告警。

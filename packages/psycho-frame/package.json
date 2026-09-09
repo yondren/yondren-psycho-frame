@@ -5,11 +5,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yondren/yondern-psycho-frame.git"
+    "url": "git+https://github.com/yondren/yondren-psycho-frame.git"
   },
   "homepage": "https://psycho-frame.yondern.com",
   "bugs": {
-    "url": "https://github.com/yondren/yondern-psycho-frame/issues"
+    "url": "https://github.com/yondren/yondren-psycho-frame/issues"
   },
   "type": "module",
   "bin": {

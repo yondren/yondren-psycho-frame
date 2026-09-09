@@ -20,7 +20,7 @@ Status: implemented
 - 手写内容只有：首页 hero、VitePress 配置、网站说明——官网不产生第二份事实源。
 - 部署：GitHub Pages workflow（[docs.yml](../../../.github/workflows/docs.yml)），构建前先跑
   `psycho-frame verify`；基路径经 `DOCS_BASE` 环境变量注入（项目页阶段
-  `/yondern-psycho-frame/`，自定义域名下 `/`）。
+  `/yondren-psycho-frame/`，自定义域名下 `/`）。
 - CDN 加速：自定义域名经 Cloudflare 代理到 Pages 源站（SSL `Full (strict)`、HTML 短 TTL
   与带哈希资源长 TTL 缓存规则），部署目标不变，灰色云一键回滚；操作与验证步骤见
   [cloudflare-gh-pages.md](../../../docs/cookbook/cloudflare-gh-pages.md)。
@@ -55,7 +55,7 @@ Cloudflare 免费带宽无上限，域名也已托管于 Cloudflare DNS。
 - 官网内容零手工维护：源文档改动后 `docs:build` 自动同步，无第二事实源。
 - 生成物不被门禁误伤：全部相对链接已重写为官网绝对路径或 GitHub 直链，天然通过
   verify 的链接检查；手写页面的链接同样被门禁覆盖。
-- GitHub org `yondren` / 仓库 `yondern-psycho-frame`；官网链接与 workflow 使用该地址
+- GitHub org `yondren` / 仓库 `yondren-psycho-frame`；官网链接与 workflow 使用该地址
   （repoBase 在 sync 脚本单点定义）。
 - 大陆可达性由 Cloudflare 边缘承载；故障时把 DNS 切回"仅 DNS"即回纯 GitHub Pages。
 - 全链路零密钥：加速层只涉 DNS 代理与缓存规则，无 API token 入 Git 或 CI。

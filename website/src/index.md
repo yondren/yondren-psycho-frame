@@ -14,7 +14,7 @@ hero:
       link: /reference/cli
     - theme: alt
       text: 查看 GitHub
-      link: https://github.com/yondren/yondern-psycho-frame
+      link: https://github.com/yondren/yondren-psycho-frame
 
 features:
   - title: 四层知识分离

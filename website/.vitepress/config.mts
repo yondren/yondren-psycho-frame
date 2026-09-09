@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 
-// 部署到 GitHub Pages 项目页（https://<user>.github.io/yondern-psycho-frame/）时，
-// 由 workflow 注入 DOCS_BASE=/yondern-psycho-frame/；自定义域名时保持根路径。
+// 部署到 GitHub Pages 项目页（https://<user>.github.io/yondren-psycho-frame/）时，
+// 由 workflow 注入 DOCS_BASE=/yondren-psycho-frame/；自定义域名时保持根路径。
 const base = process.env.DOCS_BASE ?? '/'
 
 export default defineConfig({
@@ -16,7 +16,7 @@ export default defineConfig({
       { text: '指南', link: '/guide/getting-started' },
       { text: '参考', link: '/reference/cli' },
       { text: 'npm', link: 'https://www.npmjs.com/package/yondern-psycho-frame' },
-      { text: 'GitHub', link: 'https://github.com/yondren/yondern-psycho-frame' },
+      { text: 'GitHub', link: 'https://github.com/yondren/yondren-psycho-frame' },
     ],
     sidebar: [
       {
