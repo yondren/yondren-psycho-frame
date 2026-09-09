@@ -49,6 +49,9 @@
 - org 确认：实际 GitHub org 为 `yondren`（非规划的 `yondern`），仓库内 org 引用已全部
   同步修正（sync repoBase、两包元数据、官网 hero 与导航、cookbook CNAME 目标与前置
   条件、两条决策、任务与报告）。
+- CI 失败根因：pnpm 11.20.0 要求 Node ≥ 22.13（依赖 node:sqlite），workflow 原
+  `node-version: 20` 导致 build 任务在 setup-node 步骤崩溃；已改 `node-version: 22`，
+  docs/development.md 环境要求同步修正（包 engines 对消费者仍为 ≥ 18.20）。
 
 ## 5. 文档与决策是否同步
 
@@ -60,8 +63,8 @@
 
 ## 6. 还剩什么阻塞
 
-- 仓库 yondren/yondern-psycho-frame 已创建并首推成功，当前为私有：改为 Public 并把
-  Pages 源设为 GitHub Actions 后，docs.yml 自动部署到
-  yondren.github.io/yondern-psycho-frame/。
+- 仓库 yondren/yondern-psycho-frame 已公开；Pages 尚未启用（pages API 404）：在
+  Settings → Pages → Source 选 GitHub Actions 后，docs.yml 的部署步骤才会成功，
+  站点落在 yondren.github.io/yondern-psycho-frame/。
 - ~/.ssh/known_hosts 不可写：已用 config 的 `accept-new` 规避，连接正常但主机密钥不入
   known_hosts，每次首连仅告警。
