@@ -1,0 +1,35 @@
+{
+  "name": "create-yondern-psycho-frame",
+  "version": "0.3.0",
+  "description": "npm create 入口：以 yondern-psycho-frame 模板脚手架新项目（npm create yondern-psycho-frame）。",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yondern/yondern-psycho-frame.git"
+  },
+  "homepage": "https://psycho-frame.yondern.com",
+  "bugs": {
+    "url": "https://github.com/yondern/yondern-psycho-frame/issues"
+  },
+  "type": "module",
+  "bin": {
+    "create-yondern-psycho-frame": "./bin/create.mjs"
+  },
+  "files": [
+    "bin",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.20"
+  },
+  "dependencies": {
+    "yondern-psycho-frame": "workspace:^"
+  },
+  "keywords": [
+    "agents.md",
+    "scaffold",
+    "initializer",
+    "create",
+    "skeleton"
+  ]
+}

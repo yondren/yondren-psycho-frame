@@ -1,0 +1,34 @@
+{
+  "decisionClasses": [
+    "feature",
+    "bug-fix",
+    "simplification",
+    "architecture",
+    "process",
+    "testing"
+  ],
+  "taskStatuses": [
+    "NOT_STARTED",
+    "IN_PROGRESS",
+    "BLOCKED",
+    "DEFERRED",
+    "DONE"
+  ],
+  "workMode": {
+    "plan": "on",
+    "confirmAmbiguous": true
+  },
+  "budgets": {
+    "AGENTS.md": 500,
+    "README.md": 250,
+    "decisions/README.md": 450,
+    "docs/AGENTS.md": 800,
+    "docs/architecture.md": 400,
+    "docs/cookbook/README.md": 100,
+    "docs/cookbook/parallel-worktrees.md": 350,
+    "docs/development.md": 600,
+    "docs/postmortem/README.md": 100,
+    "reports/README.md": 200,
+    "tasks/README.md": 250
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "{{PROJECT_NAME}}",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.20.0",
+  "scripts": {
+    "verify:docs": "psycho-frame verify",
+    "change-scope": "psycho-frame scope",
+    "doctor": "psycho-frame doctor"
+  },
+  "devDependencies": {
+    "yondern-psycho-frame": "^0.3.0"
+  }
+}

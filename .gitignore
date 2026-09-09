@@ -1,0 +1,14 @@
+node_modules
+.pnpm-store/
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+dist/
+.worktrees/
+.psycho-frame-upgrade/
+# 官网生成物（由 website/scripts/sync-content.mjs 构建前生成）
+website/src/guide/
+website/src/reference/
+website/.vitepress/cache/

@@ -1,0 +1,19 @@
+{
+  "name": "yondern-psycho-frame-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "见山处（Yondern）精神力骨架开发框架 monorepo；发布包在 packages/。",
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=18.20"
+  },
+  "scripts": {
+    "verify:docs": "node packages/psycho-frame/src/cli.mjs verify",
+    "change-scope": "node packages/psycho-frame/src/cli.mjs scope",
+    "doctor": "node packages/psycho-frame/src/cli.mjs doctor",
+    "release": "node scripts/release.mjs",
+    "docs:dev": "pnpm --filter yondern-psycho-frame-website docs:dev",
+    "docs:build": "pnpm --filter yondern-psycho-frame-website docs:build"
+  }
+}
