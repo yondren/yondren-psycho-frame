@@ -14,6 +14,10 @@ npm install -g yondren-psycho-frame       # 全局安装：任意目录可用，
 pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版本升级
 ```
 
+一个 checkout 只用一种包管理器：门禁与 devDependency 走 pnpm（`pnpm verify:docs` 缺依赖时
+会先自动装好）；agent 沙箱内 npm/npx 写不了 workspace 外缓存（EPERM），混装会让 pnpm 拒绝
+重建 `node_modules`。
+
 交互终端运行任意命令时静默检查最新版本并在有新版时提示（24h 节流、离线静默、
 非交互终端跳过）；设 `PSYCHO_FRAME_NO_UPDATE_CHECK=1` 关闭。
 

@@ -7,6 +7,8 @@
   pnpm 按 packageManager 锁版本。
 - 门禁零依赖：`node packages/psycho-frame/src/cli.mjs verify` 无需 install；
   `pnpm install` 建 workspace 链接后可用 `pnpm verify:docs` 等价入口。
+- 装依赖只用 pnpm：沙箱内 npm/npx 写不了 workspace 外缓存（EPERM），混装会让 pnpm 拒绝重建
+  `node_modules`。
 - 测试零依赖：`pnpm test` 跑 `packages/psycho-frame/test/`（node:test），同样无需 install。
 
 ## 日常顺序

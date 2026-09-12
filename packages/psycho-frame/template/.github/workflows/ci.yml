@@ -1,0 +1,22 @@
+name: 门禁
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4   # 版本取 package.json 的 packageManager
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # 模板不附带 lockfile，首次运行允许解析
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm verify:docs
+      - run: pnpm run doctor

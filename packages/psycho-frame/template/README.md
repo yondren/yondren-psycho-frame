@@ -7,8 +7,7 @@
 ## 快速开始
 
 ```sh
-pnpm install
-pnpm verify:docs
+pnpm verify:docs                      # 零依赖；缺 devDependency 时 pnpm 自动补齐
 pnpm change-scope --base main
 ```
 
