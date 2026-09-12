@@ -1,7 +1,7 @@
 # CLI 健壮性与元数据一致性
 
 - task_key: cli-robustness
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-13
 - updated: 2026-09-13
 - report: [reports/cli-robustness.md](../reports/cli-robustness.md)
@@ -16,4 +16,5 @@
 
 ## 进度
 
-- [IN_PROGRESS] 2026-09-13 开工：worktree `.worktrees/cli-robustness`，分支 `cli-robustness`。
+- [DONE] 2026-09-13 upgrade 自保护、report 强校验、engines/.nvmrc、doctor 判定、历史收尾全部落地；
+  验证与合流完成。

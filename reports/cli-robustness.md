@@ -1,7 +1,7 @@
 # CLI 健壮性与元数据一致性 执行报告
 
 - task_key: cli-robustness
-- 状态: IN_PROGRESS
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
