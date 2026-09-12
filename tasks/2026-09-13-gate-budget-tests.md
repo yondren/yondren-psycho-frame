@@ -1,7 +1,7 @@
 # 门禁可信度：中文预算计数、零依赖测试与 CI 覆盖
 
 - task_key: gate-budget-tests
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-13
 - updated: 2026-09-13
 - report: [reports/gate-budget-tests.md](../reports/gate-budget-tests.md)
@@ -17,4 +17,4 @@
 
 ## 进度
 
-- [IN_PROGRESS] 2026-09-13 开工：worktree `.worktrees/gate-budget-tests`，分支 `gate-budget-tests`。
+- [DONE] 2026-09-13 预算改 CJK 计数、门禁健壮化、零依赖测试与 CI 落地；验证与合流完成。

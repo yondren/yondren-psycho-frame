@@ -1,7 +1,7 @@
 # 门禁可信度：中文预算计数、零依赖测试与 CI 覆盖 执行报告
 
 - task_key: gate-budget-tests
-- 状态: IN_PROGRESS
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
