@@ -107,7 +107,9 @@ export function doctor({ target = '.', cwd = process.cwd(), stdout = console.log
       const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
       const scripts = pkg.scripts ?? {}
       const deps = { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) }
-      if (!deps['yondren-psycho-frame']) {
+      // 只有脚本调用裸 psycho-frame 命令才需要依赖；路径形式自带实现，不该追讨 devDependency
+      const usesBin = Object.values(scripts).some(s => typeof s === 'string' && /(^|[\s&|;])psycho-frame(?:$|\s)/.test(s))
+      if (usesBin && !deps['yondren-psycho-frame']) {
         notes.push('package.json 未声明 "yondren-psycho-frame"：加入 devDependencies 后 pnpm verify:docs 会自动安装')
       }
       if (!scripts['verify:docs']?.includes('psycho-frame')) {

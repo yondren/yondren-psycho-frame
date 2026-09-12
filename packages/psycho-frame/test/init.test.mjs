@@ -123,3 +123,19 @@ test('doctor：缺 devDependency 时提示接入门禁', () => {
   assert.equal(r.exitCode, 0)
   assert.ok(r.notes.some(n => n.includes('yondren-psycho-frame')))
 })
+
+test('doctor：脚本用路径调用时不追讨 devDependency', () => {
+  const cwd = tempDir()
+  scaffold({ cwd, target: 'proj', mode: 'init', stdout: noop, stderr: noop })
+  write(cwd, 'proj/package.json', JSON.stringify({
+    name: 'proj',
+    private: true,
+    scripts: {
+      'verify:docs': 'node packages/psycho-frame/src/cli.mjs verify',
+      'change-scope': 'node packages/psycho-frame/src/cli.mjs scope',
+    },
+  }))
+  const r = doctor({ cwd, target: 'proj', stdout: noop, stderr: noop })
+  assert.equal(r.exitCode, 0)
+  assert.equal(r.notes.some(n => n.includes('yondren-psycho-frame')), false)
+})
