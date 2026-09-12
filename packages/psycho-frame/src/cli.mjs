@@ -10,7 +10,7 @@ import { verifyDocs } from './verify-docs.mjs'
 import { run as runScope } from './change-scope.mjs'
 import { scaffold, doctor } from './init.mjs'
 import { run as runUpgrade } from './upgrade.mjs'
-import { readWorkMode, setWorkMode } from './work-mode.mjs'
+import { readWorkMode, setWorkMode, DEFAULT_WORK_MODE } from './work-mode.mjs'
 import {
   notifyUpdate,
   spawnUpdateCheck,
@@ -23,6 +23,12 @@ const pkgRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const pkg = JSON.parse(fs.readFileSync(path.join(pkgRoot, 'package.json'), 'utf8'))
 const pkgName = pkg.name
 const version = pkg.version
+
+// 工作模式的键与默认值全部来自 work-mode.mjs；mode 子命令的解析、回显与 reset 由它派生，
+// 避免新增开关时在这里漏改。
+const MODE_KEYS = Object.keys(DEFAULT_WORK_MODE)
+const MODE_PATCH_RE = new RegExp(`^(${MODE_KEYS.join('|')})=(\\S+)$`)
+const modeLine = wm => MODE_KEYS.map(k => `${k}=${wm[k]}`).join('，')
 
 function gitToplevel(cwd) {
   try {
@@ -44,10 +50,10 @@ const USAGE = `psycho-frame ${version} — 见山处（Yondren）精神力骨架
                     --json 输出机器可读结果
   scope|change-scope --base <ref> [--head <ref>]
                     四层改动面报告（base 必须显式提供）
-  mode              显示当前工作模式（plan、confirmAmbiguous）
+  mode              显示当前工作模式（plan、confirmAmbiguous、fleet）
   mode set <key>=<value> [<key>=<value>]
-                    设置工作模式并写回配置（plan=on|off，confirmAmbiguous=true|false）
-  mode reset        恢复默认工作模式（plan=on，confirmAmbiguous=true）
+                    设置工作模式并写回配置（plan=on|off，confirmAmbiguous=true|false，fleet=on|off）
+  mode reset        恢复默认工作模式（plan=on，confirmAmbiguous=true，fleet=off）
   upgrade [目录] [--dry-run] [--exit-code]
                     骨架一键升级：模板优先，被覆盖的本地改动自动备份到
                     .psycho-frame-upgrade/；配置增量合并；README.md 保留本地；加 --dry-run
@@ -68,7 +74,7 @@ const USAGE = `psycho-frame ${version} — 见山处（Yondren）精神力骨架
   psycho-frame verify
   psycho-frame scope --base main
   psycho-frame mode
-  psycho-frame mode set plan=off confirmAmbiguous=false
+  psycho-frame mode set plan=off fleet=on
   psycho-frame upgrade --dry-run
   psycho-frame init my-project
   psycho-frame adopt .
@@ -126,12 +132,12 @@ scope 的别名，行为完全一致。
 psycho-frame mode set <key>=<value> [<key>=<value>]
 psycho-frame mode reset
 
-查看/设置工作模式并写回 .psycho-frame.json：plan=on|off，
-confirmAmbiguous=true|false；reset 恢复默认（plan=on，confirmAmbiguous=true）。
+查看/设置工作模式并写回 .psycho-frame.json：plan=on|off，confirmAmbiguous=true|false，
+fleet=on|off；reset 恢复默认（plan=on，confirmAmbiguous=true，fleet=off）。
 
 示例:
   psycho-frame mode
-  psycho-frame mode set plan=off confirmAmbiguous=false
+  psycho-frame mode set plan=off fleet=on
   psycho-frame mode reset
 
 退出码: 0（成功）；1（配置写回失败）；2（参数非法）
@@ -279,19 +285,21 @@ switch (cmd) {
       const sub = rest[0]
       if (sub === undefined) {
         const wm = readWorkMode(root)
-        console.log(`工作模式：plan=${wm.plan}，confirmAmbiguous=${wm.confirmAmbiguous}`)
+        console.log(`工作模式：${modeLine(wm)}`)
         break
       }
       if (sub === 'set') {
         const patch = {}
         for (const kv of rest.slice(1)) {
-          const m = /^(plan|confirmAmbiguous)=(\S+)$/.exec(kv)
+          const m = MODE_PATCH_RE.exec(kv)
           if (m === null) {
-            fail(`psycho-frame mode set: 无法解析 "${kv}"（用法: mode set plan=on|off confirmAmbiguous=true|false）`, 2)
+            fail(`psycho-frame mode set: 无法解析 "${kv}"（用法: mode set <key>=<value>；可用键: ${MODE_KEYS.join(' / ')}）`, 2)
           }
           const key = m[1]
           const raw = m[2]
-          patch[key] = key === 'plan' ? raw : raw === 'true' ? true : raw === 'false' ? false : raw
+          patch[key] = typeof DEFAULT_WORK_MODE[key] === 'boolean'
+            ? raw === 'true' ? true : raw === 'false' ? false : raw
+            : raw
         }
         if (Object.keys(patch).length === 0) {
           fail(`psycho-frame mode set: 至少提供一个 key=value\n\n${USAGE}`, 2)
@@ -300,15 +308,15 @@ switch (cmd) {
         if (!result.ok) {
           fail(result.errors.map(e => `.psycho-frame.json: ${e}`).join('\n'), 1)
         }
-        console.log(`工作模式已更新：plan=${result.workMode.plan}，confirmAmbiguous=${result.workMode.confirmAmbiguous}`)
+        console.log(`工作模式已更新：${modeLine(result.workMode)}`)
         break
       }
       if (sub === 'reset') {
-        const result = setWorkMode(root, { plan: 'on', confirmAmbiguous: true })
+        const result = setWorkMode(root, { ...DEFAULT_WORK_MODE })
         if (!result.ok) {
           fail(result.errors.map(e => `.psycho-frame.json: ${e}`).join('\n'), 1)
         }
-        console.log('工作模式已恢复默认：plan=on，confirmAmbiguous=true')
+        console.log(`工作模式已恢复默认：${modeLine(result.workMode)}`)
         break
       }
       fail(`psycho-frame mode: 未知子命令 "${sub}"\n\n${USAGE}`, 2)

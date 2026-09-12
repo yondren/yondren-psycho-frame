@@ -27,6 +27,8 @@ test('init：空目录生成骨架，gitignore 改名为 .gitignore，占位符�
   assert.ok(fs.existsSync(path.join(cwd, 'proj/AGENTS.md')))
   assert.ok(fs.existsSync(path.join(cwd, 'proj/.gitignore')))
   assert.ok(fs.existsSync(path.join(cwd, 'proj/.psycho-frame.json')))
+  const cfg = JSON.parse(fs.readFileSync(path.join(cwd, 'proj/.psycho-frame.json'), 'utf8'))
+  assert.equal(cfg.workMode.fleet, 'off')
   const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'proj/package.json'), 'utf8'))
   assert.equal(pkg.name, 'proj')
   assert.equal(pkg.private, true)
@@ -109,6 +111,16 @@ test('模板门禁入口：只用 pnpm，不再宣称 npm/yarn 亦可', () => {
   assert.ok(dev.includes('门禁接入'))
   assert.match(out.join('\n'), /pnpm verify:docs/)
   assert.doesNotMatch(out.join('\n'), /pnpm install && pnpm verify:docs/)
+})
+
+test('模板：舰队模式文档与预算随模板落地', () => {
+  const cwd = tempDir()
+  scaffold({ cwd, target: 'proj', mode: 'init', stdout: noop, stderr: noop })
+  const dev = fs.readFileSync(path.join(cwd, 'proj/docs/development.md'), 'utf8')
+  assert.ok(dev.includes('fleet=on') && dev.includes('cookbook/fleet-mode.md'))
+  const index = fs.readFileSync(path.join(cwd, 'proj/docs/cookbook/README.md'), 'utf8')
+  assert.ok(index.includes('fleet-mode.md'))
+  assert.ok(fs.existsSync(path.join(cwd, 'proj/docs/cookbook/fleet-mode.md')))
 })
 
 test('doctor：缺 devDependency 时提示接入门禁', () => {

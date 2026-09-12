@@ -10,8 +10,9 @@ Agent 在骨架内每次会话的行为纪律（是否强制先出计划并经�
 
 ## Decision
 
-- 新增 `.psycho-frame.json` 的 `workMode` 字段，两个正交开关：`plan`（`on`/`off`，
-  默认 `on`）与 `confirmAmbiguous`（`true`/`false`，默认 `true`）；取值封闭，verify
+- 新增 `.psycho-frame.json` 的 `workMode` 字段，正交开关：`plan`（`on`/`off`，
+  默认 `on`）、`confirmAmbiguous`（`true`/`false`，默认 `true`）与 `fleet`
+  （见 [舰队模式开关](2026-09-13-fleet-work-mode.md)）；取值封闭，verify
   门禁校验，非法即失败。
 - `plan=on` 是 plan 模式：改动文件前先在对话中给出实施计划，经用户确认后才动手；
   `plan=off` 动手前仍显式说明将要执行的计划，但不等待确认（off 不等于不计划）。

@@ -202,6 +202,11 @@ test('工作模式：取值非法', () => {
   has(errs(root), 'workMode.plan 必须为')
 })
 
+test('工作模式：fleet 取值非法', () => {
+  const root = fixtureRepo({ config: JSON.stringify({ workMode: { fleet: 'always' } }) })
+  has(errs(root), 'workMode.fleet 必须为')
+})
+
 test('ignore：前缀命中的文件被跳过', () => {
   const root = fixtureRepo({ config: JSON.stringify({ ignore: ['docs/'] }) })
   write(root, 'docs/note.md', '# 笔记\n\n[坏链](missing.md)\n')
