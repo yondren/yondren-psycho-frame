@@ -16,10 +16,10 @@ pnpm add -D yondren-psycho-frame          # devDependency，门禁随版本升�
 
 | 命令 | 作用 |
 | --- | --- |
-| `verify` | 文档门禁：链接/锚点、决策格式、任务头字段、字数预算、工作模式取值 |
+| `verify [--json]` | 文档门禁：链接/锚点、决策格式、任务头字段、字数预算、工作模式取值 |
 | `scope --base <ref>` | 四层改动面报告 |
 | `mode` | 查看 / 设置工作模式（plan、confirmAmbiguous），写回配置 |
-| `upgrade` | 骨架文件一键升级（模板优先 + 本地改动自动备份，配置增量合并，README 保留本地），`--dry-run` 预览；框架源码仓库内中止 |
+| `upgrade` | 骨架文件一键升级（模板优先 + 本地改动自动备份，配置增量合并，README 保留本地），`--dry-run` 预览、`--exit-code` 供 CI；框架源码仓库内中止 |
 | `init` / `adopt` | 新项目脚手架 / 旧项目 add-only 采纳 |
 | `doctor` | 结构漂移检查 |
 

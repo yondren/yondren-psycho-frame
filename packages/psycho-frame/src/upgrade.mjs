@@ -23,7 +23,13 @@ function timestamp() {
   return new Date().toISOString().replace(/[:T]/g, '-').replace(/\..+$/, '')
 }
 
-/** 键级合并：保留 local 已有键，补入 template 缺失键；返回 { text, added } 或 { error }。 */
+const isPlainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v)
+
+/**
+ * 键级合并：保留 local 已有键与值，补入 template 缺失键。两侧同为普通对象时再下探一层补
+ * 缺失子键（如 budgets 的新条目），仍不覆盖任何用户值；数组不合并。
+ * 返回 { text, added } 或 { error }；added 用 `k` / `k.sub` 标注补入位置。
+ */
 function mergeConfig(localText, templateText) {
   let local = null
   let tpl = null
@@ -37,7 +43,7 @@ function mergeConfig(localText, templateText) {
   } catch (e) {
     return { error: `模板 JSON 解析失败: ${e.message}` }
   }
-  if (local === null || typeof local !== 'object' || Array.isArray(local)) {
+  if (!isPlainObject(local)) {
     return { error: '顶层必须为对象' }
   }
   const added = []
@@ -45,6 +51,13 @@ function mergeConfig(localText, templateText) {
     if (!(k in local)) {
       local[k] = v
       added.push(k)
+      continue
+    }
+    if (!isPlainObject(v) || !isPlainObject(local[k])) continue
+    for (const [sub, subValue] of Object.entries(v)) {
+      if (sub in local[k]) continue
+      local[k][sub] = subValue
+      added.push(`${k}.${sub}`)
     }
   }
   return { text: JSON.stringify(local, null, 2) + '\n', added }

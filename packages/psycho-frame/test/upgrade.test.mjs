@@ -97,6 +97,19 @@ test('upgrade：模板优先 + 本地备份 + 配置增量合并', () => {
   assert.equal(fs.readFileSync(path.join(root, 'README.md'), 'utf8'), '# 本地 README\n')
 })
 
+test('upgrade：配置对象键下探一层补缺，不覆盖用户值', () => {
+  const { cwd, root } = skeleton()
+  const cfg = JSON.parse(fs.readFileSync(path.join(root, '.psycho-frame.json'), 'utf8'))
+  delete cfg.budgets['README.md']
+  cfg.budgets['docs/custom.md'] = 42
+  write(root, '.psycho-frame.json', JSON.stringify(cfg, null, 2))
+  const r = run({ cwd, target: 'proj' })
+  assert.equal(r.errors, false)
+  const merged = JSON.parse(fs.readFileSync(path.join(root, '.psycho-frame.json'), 'utf8'))
+  assert.equal(merged.budgets['README.md'], 400)
+  assert.equal(merged.budgets['docs/custom.md'], 42)
+})
+
 test('upgrade：--dry-run 不落盘', () => {
   const { cwd, root } = skeleton()
   write(root, 'AGENTS.md', '# 本地改过的 AGENTS\n')
