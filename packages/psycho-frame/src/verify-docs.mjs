@@ -299,6 +299,25 @@ export function verifyDocs(root) {
 
   // ---------- 3) 任务头字段 ----------
 
+  /** report 头字段必须是 [reports/<task_key>.md](../reports/<task_key>.md) 链接（目标存在性由第 1 组校验）。 */
+  function expectReportLink(f, key) {
+    const rp = rel(f)
+    const raw = /^- report: (.+)$/m.exec(read(f))?.[1]?.trim()
+    if (raw === undefined) {
+      errors.push(`${rp}: 缺少头字段 - report:`)
+      return
+    }
+    const m = /^\[[^\]]*\]\(([^)\s]+)\)$/.exec(raw)
+    if (m === null) {
+      errors.push(`${rp}: report 必须为 [reports/${key}.md](../reports/${key}.md) 形式的链接`)
+      return
+    }
+    const target = rel(path.resolve(path.dirname(f), m[1]))
+    if (target !== `reports/${key}.md`) {
+      errors.push(`${rp}: report 必须指向 reports/${key}.md（现为 ${target}）`)
+    }
+  }
+
   for (const f of mdFiles) {
     const rp = rel(f)
     if (isIgnored(f)) continue
@@ -325,7 +344,7 @@ export function verifyDocs(root) {
     else if (!taskStatuses.includes(status)) errors.push(`${rp}: status "${status}" 不在 {${taskStatuses.join(', ')}}`)
     if (field('created') === undefined) errors.push(`${rp}: 缺少头字段 - created:`)
     if (field('updated') === undefined) errors.push(`${rp}: 缺少头字段 - updated:`)
-    if (field('report') === undefined) errors.push(`${rp}: 缺少头字段 - report:`)
+    expectReportLink(f, key)
   }
 
   // ---------- 4) 字数预算（配置提供 budgets 才启用；清单内文件缺失即失败） ----------

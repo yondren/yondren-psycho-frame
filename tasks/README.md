@@ -9,8 +9,8 @@
 
 ## 头部字段
 
-- task_key / status / created / updated / report（reports/<task_key>.md 路径）
-- 头字段与 task_key 一致性由 `pnpm verify:docs` 校验。
+- task_key / status / created / updated / report（`reports/<task_key>.md` 链接）
+- 头字段与 task_key 一致性、report 的链接形式与命名由 `pnpm verify:docs` 校验。
 
 ## 状态
 

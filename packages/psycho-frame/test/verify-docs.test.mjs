@@ -140,6 +140,20 @@ test('任务：缺少 report 字段', () => {
   has(errs(root), '缺少头字段 - report:')
 })
 
+test('任务：report 必须指向 reports/<task_key>.md', () => {
+  const root = fixtureRepo()
+  write(root, 'reports/other.md', '# 别的报告\n')
+  write(root, 'tasks/2026-01-01-sample.md', taskText({ report: '../reports/other.md' }))
+  has(errs(root), 'report 必须指向 reports/sample.md（现为 reports/other.md）')
+})
+
+test('任务：report 必须为链接形式', () => {
+  const root = fixtureRepo()
+  write(root, 'tasks/2026-01-01-sample.md',
+    taskText().replace('[reports/sample.md](../reports/sample.md)', 'reports/sample.md'))
+  has(errs(root), 'report 必须为 [reports/sample.md](../reports/sample.md) 形式的链接')
+})
+
 test('任务：task_key 必须全小写连字符', () => {
   const root = fixtureRepo()
   write(root, 'tasks/2026-01-01-BadKey.md', taskText({ key: 'BadKey' }))

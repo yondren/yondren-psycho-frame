@@ -111,7 +111,7 @@ export function doctor({ target = '.', cwd = process.cwd(), stdout = console.log
       issues.push(`package.json: JSON 解析失败: ${e.message}`)
     }
   } else {
-    issues.push('缺少 package.json（模板自带；如不需要 Node 项目可忽略本行）')
+    notes.push('无 package.json：跳过脚本检查（非 Node 项目可忽略）')
   }
 
   for (const n of notes) stdout(`[note] ${n}`)
