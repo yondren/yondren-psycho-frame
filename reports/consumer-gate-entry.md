@@ -1,7 +1,7 @@
 # 消费方门禁入口与 pnpm 单一化 执行报告
 
 - task_key: consumer-gate-entry
-- 状态: IN_PROGRESS
+- 状态: DONE
 
 ## 1. 改了哪些文件
 

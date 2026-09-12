@@ -1,7 +1,7 @@
 # 消费方门禁入口：零依赖路径与 pnpm 单一化
 
 - task_key: consumer-gate-entry
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-13
 - updated: 2026-09-13
 - report: [reports/consumer-gate-entry.md](../reports/consumer-gate-entry.md)
@@ -16,5 +16,7 @@ workspace 内免安装兜底）；环境段删去"npm/yarn 亦可"并写清沙�
 
 ## 进度
 
+- [DONE] 2026-09-13 模板环境段、入口分层、worktree 依赖供给、模板 CI、init/doctor 提示全部
+  落地；门禁、83 条测试与脚手架端到端验证通过，报告与决策已同步。
 - [IN_PROGRESS] 2026-09-13 开工。消费者场景已实测：agent 沙箱内 `npm`/`npx`/`pnpm dlx`
   写不了 workspace 外缓存（EPERM），项目内 `pnpm install` 与 `pnpm verify:docs` 可用。
