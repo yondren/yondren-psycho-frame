@@ -11,6 +11,7 @@
 | 子树 AGENTS.md（`docs/`、`decisions/`、`reports/`、`tasks/`） | 该目录专属命令 | 全仓库规则 |
 | [architecture.md](architecture.md) | 结构地图：模块、流转、扩展点；改代码前必读 | 单模块细节 |
 | [development.md](development.md) | 环境搭建与日常工作流 | 设计理由（→ decisions/） |
+| [concepts.md](concepts.md) | 核心理念：四层知识、单一事实源、门禁 | 操作步骤（→ cookbook/） |
 | [cookbook/](cookbook/README.md) | 带验证步骤的 how-to | 设计理由（→ decisions/） |
 | [postmortem/](postmortem/README.md) | 事故故事（唯一允许"讲故事"的层级） | — |
 | `decisions/` | 决策记录：为什么、放弃了什么 | 变更史（→ commit/reports） |

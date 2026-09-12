@@ -8,6 +8,8 @@ node_modules
 dist/
 .worktrees/
 .psycho-frame-upgrade/
+# 本地私记（部署操作等），不入 Git
+.local/
 # 官网生成物（由 website/scripts/sync-content.mjs 构建前生成）
 website/src/guide/
 website/src/reference/

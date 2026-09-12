@@ -1,7 +1,8 @@
 // 官网内容生成：把仓库权威 Markdown 映射为 VitePress 指南/参考页。
 // 映射表在 scripts/content-map.mjs（与 .vitepress/config.mts 的 sidebar 共用）。
 // 生成物位于 src/guide/ 与 src/reference/（gitignore，构建前运行）。
-// 链接重写规则：目标在映射表内 → 官网路径；其余仓库内目标 → GitHub 直链；外部链接原样保留。
+// 链接重写规则：目标在映射表内 → 官网路径；其余仓库内目标 → GitHub 直链；外部链接原样保留；
+// 代码围栏内是示例文本，一律原样保留。
 // 零依赖。用法: node scripts/sync-content.mjs
 import fs from 'node:fs'
 import path from 'node:path'
@@ -38,18 +39,32 @@ function rewriteTarget(target, srcDir) {
 }
 
 function transform(source, srcDir) {
-  let text = fs.readFileSync(path.join(repoRoot, source), 'utf8')
-  // 行内链接与图片：![label](url "title") 分段重建，避免标签文本与 URL 相同导致误替换
-  text = text.replace(/(!?\[[^\]]*\]\()([^)\s]+)([^)]*\))/g, (m, head, url, tail) => {
-    const next = rewriteTarget(url, srcDir)
-    return `${head}${next}${tail}`
-  })
-  // 引用式定义：[id]: url
-  text = text.replace(/^(\[[^\]]+\]:)\s*(\S+)/gm, (m, head, url) => {
-    const next = rewriteTarget(url, srcDir)
-    return `${head} ${next}`
-  })
-  return text
+  const text = fs.readFileSync(path.join(repoRoot, source), 'utf8')
+  // 代码围栏内是示例文本，原样保留；只重写正文里的链接，否则教程里的相对路径会被改写坏。
+  let inFence = false
+  return text.split('\n').map(line => {
+    if (/^\s*(```|~~~)/.test(line)) {
+      inFence = !inFence
+      return line
+    }
+    if (inFence) return line
+    // 行内链接与图片：![label](url "title") 分段重建，避免标签文本与 URL 相同导致误替换
+    let next = line.replace(/(!?\[[^\]]*\]\()([^)\s]+)([^)]*\))/g, (m, head, url, tail) => {
+      const target = rewriteTarget(url, srcDir)
+      return `${head}${target}${tail}`
+    })
+    // 引用式定义：[id]: url
+    next = next.replace(/^(\[[^\]]+\]:)\s*(\S+)/, (m, head, url) => {
+      const target = rewriteTarget(url, srcDir)
+      return `${head} ${target}`
+    })
+    return next
+  }).join('\n')
+}
+
+// 生成目录整体重建：映射里删掉的页面不能以残留文件继续被 VitePress 构建。
+for (const dir of ['src/guide', 'src/reference']) {
+  fs.rmSync(path.join(websiteRoot, dir), { recursive: true, force: true })
 }
 
 for (const entry of contentMap) {

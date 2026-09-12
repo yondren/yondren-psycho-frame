@@ -3,26 +3,26 @@ layout: home
 
 hero:
   name: yondren-psycho-frame
-  text: 见山处精神力骨架开发框架
-  tagline: 文档优先的工程骨架——任务、决策、报告、事实四层分离，门禁机器可校验，零运行时依赖。
+  text: 见山处精神力骨架
+  tagline: 把事实、决策、任务、报告四层知识放进 Git，用一条命令挡住文档腐化。零运行时依赖。
   actions:
     - theme: brand
       text: 快速上手
       link: /guide/getting-started
     - theme: alt
-      text: CLI 与配置
-      link: /reference/cli
+      text: 使用教程
+      link: /guide/tutorial
     - theme: alt
       text: 查看 GitHub
       link: https://github.com/yondren/yondren-psycho-frame
 
 features:
-  - title: 四层知识分离
-    details: docs/ 存当前事实、decisions/ 存理由、reports/ 存过程、tasks/ 存状态；每个事实只有一个家，腐化有迹可循。
-  - title: 门禁机器可校验
-    details: verify 一次覆盖链接与锚点、决策结构与格式、任务头字段、字数预算；零依赖，仅需 Node ≥ 18.20。
-  - title: 三条安装路径
-    details: npm create 起新项目、adopt 只增不改地改造旧项目、devDependency 让门禁随 semver 升级。
-  - title: 换 Agent 零迁移
-    details: 全部知识载体为 Markdown + Git；任务真源在仓库内，任何 AI 编程工具按目录自动收到规则。
+  - title: 文档不再腐化
+    details: docs/ 存当前事实、decisions/ 存理由、tasks/ 存状态、reports/ 存过程；每个事实只有一个家，改动只发生在一处。
+  - title: 一条命令挡住漂移
+    details: verify 一次校验链接与锚点、决策结构、任务头字段、字数预算与工作模式；零依赖，Node ≥ 18.20 即可运行。
+  - title: 新项目旧项目都能装
+    details: npm create 起新项目、adopt 只增不改地改造旧项目、devDependency 让门禁随版本升级。
+  - title: 换 AI 工具零迁移
+    details: 知识载体只有 Markdown + Git，规则写在 AGENTS.md，任何编程工具按目录自动读到，不需要重新交代上下文。
 ---

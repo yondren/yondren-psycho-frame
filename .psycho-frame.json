@@ -18,6 +18,9 @@
     "plan": "on",
     "confirmAmbiguous": true
   },
+  "ignore": [
+    ".local/"
+  ],
   "budgets": {
     "AGENTS.md": 550,
     "README.md": 400,

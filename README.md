@@ -1,27 +1,37 @@
 # yondren-psycho-frame
 
-见山处（Yondren）精神力骨架开发框架：文档优先的工程骨架，任务、决策、报告、事实四层
-分离，门禁机器可校验，零运行时依赖。任何新项目或旧项目都可以通过 npm 安装使用。
+见山处（Yondren）精神力骨架开发框架：把"现在是什么样""为什么这样定""做到哪一步""这次怎么
+做的"分成四层放进仓库，用一条命令挡住文档腐化。零运行时依赖，新项目与旧项目都能装。
 
-## 安装
+## 30 秒跑起来
 
 ```sh
-npm create yondren-psycho-frame@latest   # 新项目
-npx yondren-psycho-frame init 目录        # 等价脚手架
-npx yondren-psycho-frame adopt 目录       # 旧项目：只增不改
-pnpm add -D yondren-psycho-frame          # devDependency，门禁随版本升级
+npm create yondren-psycho-frame@latest my-project
+cd my-project
+pnpm install && pnpm verify:docs
 ```
 
-## 命令
+得到 `docs/`（当前事实）、`decisions/`（理由）、`tasks/`（状态）、`reports/`（过程）与
+`AGENTS.md`（AI 每次会话自动读到的规则）。手把手走完整回路见
+[使用教程](docs/cookbook/tutorial.md)。
 
-| 命令 | 作用 |
-| --- | --- |
-| `verify [--json]` | 文档门禁：链接/锚点、决策格式、任务头字段、字数预算、工作模式取值 |
-| `scope --base <ref>` | 四层改动面报告 |
-| `mode` | 查看 / 设置工作模式（plan、confirmAmbiguous），写回配置 |
-| `upgrade` | 骨架文件一键升级（模板优先 + 本地改动自动备份，配置增量合并，README 保留本地），`--dry-run` 预览、`--exit-code` 供 CI；框架源码仓库内中止 |
-| `init` / `adopt` | 新项目脚手架 / 旧项目 add-only 采纳 |
-| `doctor` | 结构漂移检查 |
+## 三条安装路径
+
+| 场景 | 命令 | 特点 |
+| --- | --- | --- |
+| 新项目 | `npm create yondren-psycho-frame@latest` | 脚手架，目标目录须为空 |
+| 旧项目 | `npx yondren-psycho-frame adopt .` | 只增不改，不覆盖既有文件 |
+| 长期使用 | `pnpm add -D yondren-psycho-frame` | 门禁随 devDependency 升级 |
+
+## 门禁：让腐化在提交前失败
+
+```sh
+pnpm verify:docs
+```
+
+一次校验链接与锚点、决策记录结构、任务头字段、字数预算、工作模式取值；零依赖，仅需
+Node ≥ 18.20。全部命令与配置见 [CLI 与配置](packages/psycho-frame/README.md)，设计取舍见
+[核心理念](docs/concepts.md)。
 
 ## 仓库结构
 
