@@ -18,7 +18,8 @@
 - 每个事实只有一个家（one home per fact），其余位置只放相对链接。
 - 文档只写当前状态，不写变更史；变更史放 commit 与 reports/。
 - 每次非平凡变更必须在同一提交中新增或更新至少一条 decisions/ 决策记录。
-- 新增、移动、重命名文档后同步更新所属索引；提交前跑 `pnpm verify:docs`。
+- 新增、移动、重命名文档后同步更新所属索引；提交前跑 `pnpm verify:docs`（缺 devDependency
+  时 pnpm 会先装好，不要用 npm 混装）。
 
 ## 任务与并行
 - 任务状态真源在 tasks/（Git 内），开工前先登记任务并置 `IN_PROGRESS`。

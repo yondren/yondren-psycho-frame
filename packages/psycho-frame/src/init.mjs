@@ -69,7 +69,12 @@ export function scaffold({ target = '.', mode, cwd = process.cwd(), stdout = con
     written.push(rel)
   }
   stdout('\n下一步：')
-  stdout('  pnpm install && pnpm verify:docs')
+  if (mode === 'adopt') {
+    stdout('  既有 package.json 缺 verify:docs / change-scope 脚本时，按 docs/development.md 的')
+    stdout('  「门禁接入」补齐脚本与 devDependency，再跑 pnpm verify:docs（pnpm 会先装好，不要用 npm）')
+  } else {
+    stdout('  pnpm verify:docs        # 零依赖；缺 devDependency 时 pnpm 会自动补齐')
+  }
   return { exitCode: 0, written, skipped }
 }
 
@@ -101,11 +106,15 @@ export function doctor({ target = '.', cwd = process.cwd(), stdout = console.log
     try {
       const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
       const scripts = pkg.scripts ?? {}
+      const deps = { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) }
+      if (!deps['yondren-psycho-frame']) {
+        notes.push('package.json 未声明 "yondren-psycho-frame"：加入 devDependencies 后 pnpm verify:docs 会自动安装')
+      }
       if (!scripts['verify:docs']?.includes('psycho-frame')) {
-        notes.push('package.json 缺少脚本 "verify:docs"（建议 "psycho-frame verify"）')
+        notes.push('package.json 缺少脚本 "verify:docs"：加入 "verify:docs": "psycho-frame verify"，然后 pnpm verify:docs')
       }
       if (!scripts['change-scope']?.includes('psycho-frame')) {
-        notes.push('package.json 缺少脚本 "change-scope"（建议 "psycho-frame scope"）')
+        notes.push('package.json 缺少脚本 "change-scope"：加入 "change-scope": "psycho-frame scope"')
       }
     } catch (e) {
       issues.push(`package.json: JSON 解析失败: ${e.message}`)

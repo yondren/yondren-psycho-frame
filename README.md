@@ -8,7 +8,7 @@
 ```sh
 npm create yondren-psycho-frame@latest my-project
 cd my-project
-pnpm install && pnpm verify:docs
+pnpm verify:docs
 ```
 
 得到 `docs/`（当前事实）、`decisions/`（理由）、`tasks/`（状态）、`reports/`（过程）与
@@ -30,8 +30,8 @@ pnpm verify:docs
 ```
 
 一次校验链接与锚点、决策记录结构、任务头字段、字数预算、工作模式取值；零依赖，仅需
-Node ≥ 18.20。全部命令与配置见 [CLI 与配置](packages/psycho-frame/README.md)，设计取舍见
-[核心理念](docs/concepts.md)。
+Node ≥ 18.20，缺 devDependency 时 pnpm 会先装好。全部命令与配置见
+[CLI 与配置](packages/psycho-frame/README.md)，设计取舍见 [核心理念](docs/concepts.md)。
 
 ## 仓库结构
 

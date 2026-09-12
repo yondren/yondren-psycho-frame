@@ -98,3 +98,28 @@ test('doctor：配置 JSON 损坏时失败', () => {
   assert.equal(r.exitCode, 1)
   assert.ok(r.issues.some(i => i.includes('JSON 解析失败')))
 })
+
+test('模板门禁入口：只用 pnpm，不再宣称 npm/yarn 亦可', () => {
+  const cwd = tempDir()
+  const out = []
+  scaffold({ cwd, target: 'proj', mode: 'init', stdout: m => out.push(String(m)), stderr: noop })
+  const dev = fs.readFileSync(path.join(cwd, 'proj/docs/development.md'), 'utf8')
+  assert.ok(!dev.includes('npm/yarn 亦可'), '模板环境段不得再宣称 npm/yarn 亦可')
+  assert.ok(dev.includes('pnpm verify:docs'))
+  assert.ok(dev.includes('门禁接入'))
+  assert.match(out.join('\n'), /pnpm verify:docs/)
+  assert.doesNotMatch(out.join('\n'), /pnpm install && pnpm verify:docs/)
+})
+
+test('doctor：缺 devDependency 时提示接入门禁', () => {
+  const cwd = tempDir()
+  scaffold({ cwd, target: 'proj', mode: 'init', stdout: noop, stderr: noop })
+  write(cwd, 'proj/package.json', JSON.stringify({
+    name: 'proj',
+    private: true,
+    scripts: { 'verify:docs': 'psycho-frame verify' },
+  }))
+  const r = doctor({ cwd, target: 'proj', stdout: noop, stderr: noop })
+  assert.equal(r.exitCode, 0)
+  assert.ok(r.notes.some(n => n.includes('yondren-psycho-frame')))
+})

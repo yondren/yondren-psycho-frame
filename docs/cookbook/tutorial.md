@@ -13,11 +13,12 @@
 ```sh
 npm create yondren-psycho-frame@latest my-project
 cd my-project
-pnpm install
 ```
 
-三条命令依次是：生成骨架文件、进入目录、安装 devDependency（它提供 `psycho-frame` 命令）。
-不想用 pnpm 时，`npx yondren-psycho-frame init my-project` 完全等价。
+两条命令依次是：生成骨架文件、进入目录。生成的 `package.json` 已带 `verify:docs` /
+`change-scope` / `doctor` 脚本，首次跑门禁时 pnpm 会补上缺失的 devDependency——一个 checkout
+只用 pnpm，混装 npm 的 `node_modules` 会让 pnpm 拒绝重建。`npx yondren-psycho-frame init
+my-project` 与 `npm create` 等价，只是创建入口不同。
 
 **已有项目不要用 init**，用只增不改的 adopt——它遇到同名文件会跳过，绝不覆盖你的东西：
 
@@ -52,7 +53,7 @@ my-project/
 pnpm verify:docs
 ```
 
-刚生成的项目应当直接通过：
+首次运行会先补齐 devDependency，随后刚生成的项目应当直接通过：
 
 ```text
 文档门禁通过：N 个 Markdown 文件，链接与锚点可解析，决策结构与格式合规，任务头字段合规，预算达标，工作模式取值合规
@@ -154,6 +155,7 @@ pnpm exec psycho-frame upgrade --dry-run   # 预览骨架升级（模板优先�
 | `缺少头字段 - report:` | 任务没写报告链接 | 补 `- report:` 行 |
 | `缺章节 ## Decision` | 决策记录结构不全 | 补齐该类别的必备章节 |
 | `超出预算 N` | 常驻文档太长 | 先搬迁到归属层、再精简，最后才提预算 |
+| `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` | `node_modules` 由 npm/yarn 建，pnpm 在非交互环境拒绝重建 | 删掉 `node_modules` 后只用 pnpm 装；CI 里设 `CI=true` |
 
 ## 接下来
 

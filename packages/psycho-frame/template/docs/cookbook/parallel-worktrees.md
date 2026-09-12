@@ -11,7 +11,17 @@ worktree 布局：嵌套 `.worktrees/<task_key>`。
 git worktree add .worktrees/<task_key> -b <task_key> main
 ```
 
-## 2. 启用 worktree 级配置并隔离 hooks（一次 + 每 worktree）
+## 2. 依赖供给
+
+门禁零依赖，worktree 里可直接跑。需要构建或官网时才显式安装：
+
+```sh
+CI=true pnpm install --frozen-lockfile   # CI=true 让非交互环境跳过确认
+```
+
+包管理器规则见 [development.md](../development.md)；不要软链或复制其他 checkout 的 `node_modules`。
+
+## 3. 启用 worktree 级配置并隔离 hooks（一次 + 每 worktree）
 
 ```sh
 git config extensions.worktreeConfig true
@@ -23,18 +33,18 @@ git config --worktree core.hooksPath \
 [worktree-local-lefthook 决策记录](https://github.com/deepseek-ai/deepseek-harness/blob/master/.agents/notes/implemented/process/2026-07-27-worktree-local-lefthook.md)）。
 本骨架不内置 installer；hooks 隔离目前只到 worktree 级 `core.hooksPath` 配置。
 
-## 3. 会话绑定
+## 4. 会话绑定
 
 一个对话只在自己的 `.worktrees/<task_key>` 内工作，文件路径以它为前缀；
 main checkout 只做合流，不在其中编码。
 
-## 4. 改动面与验证
+## 5. 改动面与验证
 
 ```sh
 pnpm change-scope --base <父分支 ref>   # 显式 base，绝不猜 origin/<branch>
 ```
 
-## 5. 合流
+## 6. 合流
 
 1. 修复落在引入问题的那一层，再逐层 merge-forward。
 2. 推送前核对远程 OID 未变（租约保护）。
