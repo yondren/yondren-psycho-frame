@@ -16,7 +16,8 @@
   ],
   "workMode": {
     "plan": "on",
-    "confirmAmbiguous": true
+    "confirmAmbiguous": true,
+    "fleet": "off"
   },
   "ignore": [
     ".local/"
@@ -29,6 +30,7 @@
     "docs/architecture.md": 600,
     "docs/cookbook/README.md": 120,
     "docs/cookbook/parallel-worktrees.md": 400,
+    "docs/cookbook/fleet-mode.md": 400,
     "docs/development.md": 750,
     "docs/postmortem/README.md": 120,
     "reports/README.md": 250,

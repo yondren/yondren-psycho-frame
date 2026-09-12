@@ -49,6 +49,7 @@ pnpm verify:docs
 
 - `plan`：`on` 时改动前先给计划并等确认。
 - `confirmAmbiguous`：`true` 时需求有歧义必须先问，禁止自行假设。
+- `fleet`：`on` 时可独立切分的批量工作优先派发子代理并行，主线程留决策与验收。
 
 ```sh
 pnpm exec psycho-frame mode

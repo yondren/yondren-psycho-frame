@@ -5,6 +5,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+import { DEFAULT_WORK_MODE } from './work-mode.mjs'
 
 const templateRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'template')
 
@@ -96,7 +97,8 @@ export function doctor({ target = '.', cwd = process.cwd(), stdout = console.log
       issues.push(`.psycho-frame.json: JSON 解析失败: ${e.message}`)
     }
     if (config !== null && typeof config === 'object' && !Array.isArray(config) && config.workMode === undefined) {
-      notes.push('workMode 未配置：使用内置默认（plan=on，confirmAmbiguous=true），可用 psycho-frame mode set 调整')
+      const defaults = Object.entries(DEFAULT_WORK_MODE).map(([k, v]) => `${k}=${v}`).join('，')
+      notes.push(`workMode 未配置：使用内置默认（${defaults}），可用 psycho-frame mode set 调整`)
     }
   } else {
     notes.push('无 .psycho-frame.json：使用内置封闭集合与默认工作模式，字数预算未启用')

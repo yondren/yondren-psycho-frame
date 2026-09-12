@@ -1,6 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { scaffold } from '../src/init.mjs'
 import { fixtureRepo, tempDir, write, noop } from './helpers.mjs'
@@ -31,6 +33,28 @@ test('verify：未知参数退出码 2', () => {
   const r = runCli(fixtureRepo(), ['verify', '--np'])
   assert.equal(r.status, 2)
   assert.match(r.stderr, /未知参数/)
+})
+
+test('mode CLI：默认回显三项，set fleet=on 落盘', () => {
+  const root = fixtureRepo()
+  const shown = runCli(root, ['mode'])
+  assert.equal(shown.status, 0)
+  assert.match(shown.stdout, /plan=on，confirmAmbiguous=true，fleet=off/)
+  const set = runCli(root, ['mode', 'set', 'fleet=on'])
+  assert.equal(set.status, 0)
+  assert.match(set.stdout, /fleet=on/)
+  const cfg = JSON.parse(fs.readFileSync(path.join(root, '.psycho-frame.json'), 'utf8'))
+  assert.equal(cfg.workMode.fleet, 'on')
+})
+
+test('mode CLI：fleet 非法取值退出码 1，未知键退出码 2', () => {
+  const root = fixtureRepo()
+  const bad = runCli(root, ['mode', 'set', 'fleet=maybe'])
+  assert.equal(bad.status, 1)
+  assert.match(bad.stderr, /workMode\.fleet 必须为/)
+  const unknown = runCli(root, ['mode', 'set', 'fleets=on'])
+  assert.equal(unknown.status, 2)
+  assert.match(unknown.stderr, /无法解析/)
 })
 
 test('upgrade CLI：--dry-run 默认退出码 0，--exit-code 时为 1', () => {
