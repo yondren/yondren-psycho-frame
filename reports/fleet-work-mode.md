@@ -1,7 +1,7 @@
 # 舰队模式（fleet）执行报告
 
 - task_key: fleet-work-mode
-- 状态: IN_PROGRESS
+- 状态: DONE
 
 ## 1. 改了哪些文件
 

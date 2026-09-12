@@ -1,7 +1,7 @@
 # 舰队模式（fleet）：工作模式新增委派开关
 
 - task_key: fleet-work-mode
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-13
 - updated: 2026-09-13
 - report: [reports/fleet-work-mode.md](../reports/fleet-work-mode.md)
@@ -20,4 +20,4 @@ work-mode / cli / verify-docs / init 测试覆盖。
 
 ## 进度
 
-- [IN_PROGRESS] 2026-09-13 代码、模板、文档与测试落地，待验证与合流。
+- [DONE] 2026-09-13 代码、模板、文档与测试落地；测试 90 项全绿、门禁通过、临时项目冒烟通过。
