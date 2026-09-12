@@ -37,4 +37,6 @@
 - 模板在 `packages/psycho-frame/template/`；新增可选模块同步 docs/cookbook/。
 - 官网页面映射在 `website/scripts/sync-content.mjs` 的 MAP；新增文档页先加映射再发布。
 - 高频操作沉淀为 `.agents/skills/<name>/SKILL.md`。
+- 测试在 `packages/psycho-frame/test/`（node:test，零依赖）；CI 在 Node 20/22 上跑
+  verify + doctor + test（[.github/workflows/ci.yml](../.github/workflows/ci.yml)）。
 - 全量门禁矩阵归 CI；本地只跑改动面匹配的检查。

@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 门禁零依赖，无需 pnpm install：20 守消费方 engines 下限，22 对齐开发环境
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: 文档门禁
+        run: node packages/psycho-frame/src/cli.mjs verify
+      - name: 结构漂移
+        run: node packages/psycho-frame/src/cli.mjs doctor
+      - name: 单元测试
+        run: node --test packages/psycho-frame/test/*.test.mjs

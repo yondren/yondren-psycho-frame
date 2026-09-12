@@ -12,6 +12,9 @@
     "url": "https://github.com/yondren/yondren-psycho-frame/issues"
   },
   "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
   "bin": {
     "psycho-frame": "./src/cli.mjs"
   },
