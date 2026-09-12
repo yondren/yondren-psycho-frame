@@ -1,7 +1,7 @@
 # 两包锁步发布 0.3.0 执行报告
 
 - task_key: publish-psycho-frame-030
-- 状态: IN_PROGRESS
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
@@ -17,11 +17,16 @@ release.mjs 发布工具、verify-docs 跳过 .worktrees 嵌套布局支持）�
 
 ## 3. 跑了哪些命令
 
-- 待补（发布执行后填写）。
+- `pnpm release 0.3.0 --publish --push`：bump 两包与模板 pin → verify/doctor → pack 预检 →
+  commit + tag v0.3.0 → npm 双发 → 推 origin main + tag。
+- 收尾核对（2026-09-13）：直接查询 `https://registry.npmjs.org/yondern-psycho-frame` 与
+  `https://registry.npmjs.org/create-yondern-psycho-frame`，两包 versions 均为
+  0.1.0 / 0.1.1 / 0.2.0 / 0.3.0，`dist-tags.latest` 均为 0.3.0。
 
 ## 4. 验证结果
 
-- 待补（发布执行后填写）。
+- npm registry 元数据确认两包 0.3.0 均已发布。
+- pack 预检（tarball 版本、模板 pin、workspace 协议转换）在发布流程内通过。
 
 ## 5. 文档与决策是否同步
 
@@ -29,4 +34,5 @@ release.mjs 发布工具、verify-docs 跳过 .worktrees 嵌套布局支持）�
 
 ## 6. 还剩什么阻塞
 
-- 待补（发布执行后填写）。
+- 无阻塞。旧拼写包的 deprecate 指路由命名任务承接，见
+  [2026-09-10-yondren-naming.md](../decisions/implemented/architecture/2026-09-10-yondren-naming.md)。

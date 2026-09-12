@@ -2,8 +2,9 @@
 
 ## 环境
 
-- Node.js ≥ 22.13（根 package.json 锁 pnpm 11.20 的要求；包 engines 对消费者仍为 ≥ 18.20），
-  Git ≥ 2.26（worktree 级配置需要）；pnpm 按 packageManager 锁版本。
+- Node.js ≥ 22.13（根 `package.json` 的 engines 与 [.nvmrc](../.nvmrc) 锁此下限，pnpm 11.20
+  也要求它；两个发布包的 engines 对消费者仍为 ≥ 18.20），Git ≥ 2.26（worktree 级配置需要）；
+  pnpm 按 packageManager 锁版本。
 - 门禁零依赖：`node packages/psycho-frame/src/cli.mjs verify` 无需 install；
   `pnpm install` 建 workspace 链接后可用 `pnpm verify:docs` 等价入口。
 - 测试零依赖：`pnpm test` 跑 `packages/psycho-frame/test/`（node:test），同样无需 install。

@@ -71,6 +71,15 @@ test('doctor：缺必需文件时报 issue 并返回 1', () => {
   assert.ok(r.issues.some(i => i.includes('缺少必需文件')))
 })
 
+test('doctor：无 package.json 只记 note，不失败', () => {
+  const cwd = tempDir()
+  scaffold({ cwd, target: 'proj', mode: 'init', stdout: noop, stderr: noop })
+  fs.rmSync(path.join(cwd, 'proj/package.json'))
+  const r = doctor({ cwd, target: 'proj', stdout: noop, stderr: noop })
+  assert.equal(r.exitCode, 0)
+  assert.ok(r.notes.some(n => n.includes('无 package.json')))
+})
+
 test('doctor：缺少脚本只记 note，不失败', () => {
   const cwd = tempDir()
   scaffold({ cwd, target: 'proj', mode: 'init', stdout: noop, stderr: noop })

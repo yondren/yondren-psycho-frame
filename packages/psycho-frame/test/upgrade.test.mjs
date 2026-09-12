@@ -27,6 +27,25 @@ test('upgrade：目录不存在中止', () => {
   assert.equal(r.errors, true)
 })
 
+test('upgrade：框架源码仓库（root package 名）中止', () => {
+  const cwd = tempDir()
+  write(cwd, 'repo/package.json', JSON.stringify({ name: 'yondren-psycho-frame-workspace', private: true }))
+  write(cwd, 'repo/AGENTS.md', '# AGENTS\n')
+  const r = run({ cwd, target: 'repo' })
+  assert.equal(r.errors, true)
+  assert.equal(r.changed, 0)
+  assert.equal(fs.existsSync(path.join(cwd, 'repo/.psycho-frame-upgrade')), false)
+})
+
+test('upgrade：框架源码仓库（包内模板目录）中止', () => {
+  const cwd = tempDir()
+  write(cwd, 'repo/AGENTS.md', '# AGENTS\n')
+  write(cwd, 'repo/packages/psycho-frame/template/package.json', '{}')
+  const r = run({ cwd, target: 'repo' })
+  assert.equal(r.errors, true)
+  assert.equal(r.changed, 0)
+})
+
 test('upgrade：模板优先 + 本地备份 + 配置增量合并', () => {
   const { cwd, root } = skeleton()
   const localAgents = '# 本地改过的 AGENTS\n\n自定义。\n'

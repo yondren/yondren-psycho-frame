@@ -79,6 +79,15 @@ function mergeScripts(localText, templateText) {
   return { text: JSON.stringify(local, null, 2) + '\n', added }
 }
 
+/** 框架源码仓库标识：根 package 名或包内模板目录。模板升级会用极简模板覆盖其富文档。 */
+function isFrameworkSource(root) {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
+    if (pkg.name === 'yondren-psycho-frame-workspace') return true
+  } catch {}
+  return fs.existsSync(path.join(root, 'packages', 'psycho-frame', 'template', 'package.json'))
+}
+
 export function run({ target = '.', dryRun = false, cwd = process.cwd() }) {
   const root = path.resolve(cwd, target)
   if (!fs.existsSync(root)) {
@@ -87,6 +96,10 @@ export function run({ target = '.', dryRun = false, cwd = process.cwd() }) {
   }
   if (!fs.statSync(root).isDirectory()) {
     console.error(`upgrade 中止：目标不是目录 ${root}`)
+    return { changed: 0, errors: true }
+  }
+  if (isFrameworkSource(root)) {
+    console.error(`upgrade 中止：${root} 是框架源码仓库（模板源头），模板升级会覆盖其富文档；请在消费方项目内运行`)
     return { changed: 0, errors: true }
   }
   const markers = ['AGENTS.md', '.psycho-frame.json', 'package.json', 'docs']
