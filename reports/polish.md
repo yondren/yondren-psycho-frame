@@ -1,7 +1,7 @@
 # 骨架打磨：升级合并语义、dry-run 退出码、官网单一真源、verify JSON 执行报告
 
 - task_key: polish
-- 状态: IN_PROGRESS
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
