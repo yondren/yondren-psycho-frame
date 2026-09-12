@@ -41,7 +41,7 @@ pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版�
 | `decisionClasses` | 6 个内置类别 | `decisions/` 类别封闭集合 |
 | `taskStatuses` | 5 个内置状态 | `tasks/` 状态枚举 |
 | `workMode` | `{ plan: "on", confirmAmbiguous: true }` | 每次会话行为开关：是否先出计划等确认、需求不明是否必须询问；用 `mode` 命令调整 |
-| `budgets` | 无（不启用） | `{ 文件路径: 词数上限 }`，超限门禁失败 |
+| `budgets` | 无（不启用） | `{ 文件路径: 字数上限 }`，CJK 逐字计 1、拉丁/数字串计 1 词，超限门禁失败 |
 | `ignore` | 无 | 相对根的前缀列表，跳过门禁 |
 
 门禁只写当前状态、每个事实只有一个家、每个非平凡变更携带决策记录——制度文本全部在

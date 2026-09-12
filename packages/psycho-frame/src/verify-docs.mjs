@@ -35,9 +35,19 @@ function budgetsOf(cfg) {
   const v = cfg.budgets
   if (v === undefined) return null
   if (v === null || typeof v !== 'object' || Array.isArray(v)) {
-    throw new Error('.psycho-frame.json: budgets 必须为 { 文件: 词数上限 } 对象')
+    throw new Error('.psycho-frame.json: budgets 必须为 { 文件: 字数上限 } 对象')
   }
   return v
+}
+
+const CJK_RE = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu
+const LATIN_RE = /[A-Za-z0-9_][A-Za-z0-9_.-]*/g
+
+/** 字数：CJK 逐字计 1，拉丁/数字串逐词计 1；纯空白与标点不计（`wc -w` 对中文近乎失效）。 */
+export function countWords(text) {
+  const cjk = text.match(CJK_RE)?.length ?? 0
+  const latin = text.replace(CJK_RE, ' ').match(LATIN_RE)?.length ?? 0
+  return cjk + latin
 }
 
 function ignorePatterns(cfg) {
@@ -51,11 +61,20 @@ function ignorePatterns(cfg) {
 
 export function verifyDocs(root) {
   const errors = []
-  const cfg = readConfig(root)
-  const decisionClasses = stringList(cfg, 'decisionClasses', DEFAULT_DECISION_CLASSES, '.psycho-frame.json')
-  const taskStatuses = stringList(cfg, 'taskStatuses', DEFAULT_TASK_STATUSES, '.psycho-frame.json')
-  const budgets = budgetsOf(cfg)
-  const ignores = ignorePatterns(cfg)
+  let cfg
+  let decisionClasses
+  let taskStatuses
+  let budgets
+  let ignores
+  try {
+    cfg = readConfig(root)
+    decisionClasses = stringList(cfg, 'decisionClasses', DEFAULT_DECISION_CLASSES, '.psycho-frame.json')
+    taskStatuses = stringList(cfg, 'taskStatuses', DEFAULT_TASK_STATUSES, '.psycho-frame.json')
+    budgets = budgetsOf(cfg)
+    ignores = ignorePatterns(cfg)
+  } catch (e) {
+    return { errors: [e.message], count: 0 }
+  }
   const mdFiles = []
 
   function walk(dir) {
@@ -77,9 +96,10 @@ export function verifyDocs(root) {
 
   // ---------- 1) 链接与锚点 ----------
 
-  const isExternal = url =>
-    url.startsWith('//') || url.startsWith('/') || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url)
   const isWinDrive = url => /^[A-Za-z]:[\\/]/.test(url)
+  // Windows 盘符（C:\…）也匹配 scheme 语法，须先排除，否则不可移植路径检查永远不可达
+  const isExternal = url =>
+    !isWinDrive(url) && (url.startsWith('//') || url.startsWith('/') || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url))
 
   function pathPart(url) {
     const raw = url.replace(/[#?].*$/, '')
@@ -321,8 +341,8 @@ export function verifyDocs(root) {
         errors.push(`${file}: 预算清单中的文件缺失，重命名/移动必须同步配置`)
         continue
       }
-      const words = read(p).trim().split(/\s+/).filter(Boolean).length
-      if (words > ceiling) errors.push(`${file}: ${words} 词，超出预算 ${ceiling}；先搬迁/精简，或显式提预算`)
+      const words = countWords(read(p))
+      if (words > ceiling) errors.push(`${file}: ${words} 字，超出预算 ${ceiling}；先搬迁/精简，或显式提预算`)
     }
   }
 

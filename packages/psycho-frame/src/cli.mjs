@@ -235,7 +235,14 @@ function resolveRoot() {
 switch (cmd) {
   case 'verify': {
     const root = resolveRoot()
-    const { errors, count } = verifyDocs(root)
+    let result
+    try {
+      result = verifyDocs(root)
+    } catch (e) {
+      console.error(`psycho-frame verify: ${e.message}`)
+      process.exit(1)
+    }
+    const { errors, count } = result
     if (errors.length > 0) {
       console.error(errors.join('\n'))
       process.exit(1)
@@ -331,12 +338,16 @@ switch (cmd) {
     }
   }
   case 'init':
-  case 'adopt':
-    scaffold({ target: rest[0] ?? '.', mode: cmd })
+  case 'adopt': {
+    const r = scaffold({ target: rest[0] ?? '.', mode: cmd })
+    if (r.exitCode !== 0) process.exit(r.exitCode)
     break
-  case 'doctor':
-    doctor({ target: rest[0] ?? '.' })
+  }
+  case 'doctor': {
+    const r = doctor({ target: rest[0] ?? '.' })
+    if (r.exitCode !== 0) process.exit(r.exitCode)
     break
+  }
   default:
     console.error(`psycho-frame: 未知命令 "${cmd}"\n\n${USAGE}`)
     process.exit(2)

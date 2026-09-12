@@ -6,6 +6,7 @@
   Git ≥ 2.26（worktree 级配置需要）；pnpm 按 packageManager 锁版本。
 - 门禁零依赖：`node packages/psycho-frame/src/cli.mjs verify` 无需 install；
   `pnpm install` 建 workspace 链接后可用 `pnpm verify:docs` 等价入口。
+- 测试零依赖：`pnpm test` 跑 `packages/psycho-frame/test/`（node:test），同样无需 install。
 
 ## 日常顺序
 
@@ -14,7 +15,8 @@
 3. 为任务创建 worktree（[cookbook/parallel-worktrees.md](cookbook/parallel-worktrees.md)）。
 4. 编码 / 改文档；微小改动（单点文案、无方案分歧）可跳过第 2、3 步，但须在提交前
    补登记，且不写 reports/ 与决策记录。
-5. 验证：`pnpm change-scope --base <base-ref>` 取改动面，只跑覆盖该面的最窄检查。
+5. 验证：`pnpm change-scope --base <base-ref>` 取改动面，只跑覆盖该面的最窄检查；改
+   `packages/` 时加跑 `pnpm test`。
 6. 同步：非平凡变更更新或新增 decisions/ 决策记录与 reports/<task_key>.md（微小改动豁免）。
 7. 门禁：`pnpm verify:docs` 通过后提交，提交信息含 task_key。
 
@@ -35,9 +37,12 @@
 
 ## 门禁分工
 
-本地：`pnpm verify:docs` + 改动面匹配的最窄验证；全量矩阵归 CI。
+本地：`pnpm verify:docs` + `pnpm test` + 改动面匹配的最窄验证；全量矩阵归 CI。
 漂移：`pnpm run doctor`；骨架文件随模板升级用 `psycho-frame upgrade`（模板优先、本地改动自动备份、
-配置增量合并）；模板与仓库文档的偏差靠 init/adopt 测试用例看护。
+配置增量合并）；模板与仓库文档的偏差靠 init/adopt/upgrade 测试用例看护
+（[packages/psycho-frame/test/](../packages/psycho-frame/test/)）。
+CI：门禁、doctor、测试在 Node 20/22 上跑，PR 与 main 都触发
+（[.github/workflows/ci.yml](../.github/workflows/ci.yml)）。
 
 ## 包发布
 

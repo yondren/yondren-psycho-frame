@@ -40,35 +40,40 @@ export function walkFiles(dir, base = dir) {
   return out
 }
 
-export function scaffold({ target = '.', mode, cwd = process.cwd() }) {
+export function scaffold({ target = '.', mode, cwd = process.cwd(), stdout = console.log, stderr = console.error }) {
   const destRoot = path.resolve(cwd, target)
   if (!fs.existsSync(destRoot)) fs.mkdirSync(destRoot, { recursive: true })
   if (mode === 'init') {
     const existing = fs.readdirSync(destRoot).filter(n => n !== '.DS_Store')
     if (existing.length > 0) {
-      console.error(`psycho-frame init: 目标目录非空（${destRoot}）；已有项目请用 adopt（只增不改）`)
-      process.exit(1)
+      stderr(`psycho-frame init: 目标目录非空（${destRoot}）；已有项目请用 adopt（只增不改）`)
+      return { exitCode: 1, written: [], skipped: [] }
     }
   }
   const projectName = sanitizeName(path.basename(destRoot))
   const files = walkFiles(templateRoot).sort()
+  const written = []
+  const skipped = []
   for (const rel of files) {
     const src = path.join(templateRoot, rel)
     const dest = path.join(destRoot, RENAMES[rel] ?? rel)
     if (mode === 'adopt' && fs.existsSync(dest)) {
-      console.log(`[skip] ${rel}`)
+      stdout(`[skip] ${rel}`)
+      skipped.push(rel)
       continue
     }
     fs.mkdirSync(path.dirname(dest), { recursive: true })
     const text = fs.readFileSync(src, 'utf8').replaceAll('{{PROJECT_NAME}}', projectName)
     fs.writeFileSync(dest, text)
-    console.log(`[write] ${rel}`)
+    stdout(`[write] ${rel}`)
+    written.push(rel)
   }
-  console.log('\n下一步：')
-  console.log('  pnpm install && pnpm verify:docs')
+  stdout('\n下一步：')
+  stdout('  pnpm install && pnpm verify:docs')
+  return { exitCode: 0, written, skipped }
 }
 
-export function doctor({ target = '.', cwd = process.cwd() }) {
+export function doctor({ target = '.', cwd = process.cwd(), stdout = console.log, stderr = console.error }) {
   const root = path.resolve(cwd, target)
   const missing = REQUIRED_FILES.filter(f => !fs.existsSync(path.join(root, f)))
   const issues = []
@@ -109,10 +114,11 @@ export function doctor({ target = '.', cwd = process.cwd() }) {
     issues.push('缺少 package.json（模板自带；如不需要 Node 项目可忽略本行）')
   }
 
-  for (const n of notes) console.log(`[note] ${n}`)
+  for (const n of notes) stdout(`[note] ${n}`)
   if (issues.length > 0) {
-    for (const i of issues) console.error(`[issue] ${i}`)
-    process.exit(1)
+    for (const i of issues) stderr(`[issue] ${i}`)
+    return { exitCode: 1, issues, notes }
   }
-  console.log(`doctor 通过：${REQUIRED_FILES.length} 个必需文件齐全`)
+  stdout(`doctor 通过：${REQUIRED_FILES.length} 个必需文件齐全`)
+  return { exitCode: 0, issues, notes }
 }

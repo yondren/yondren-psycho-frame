@@ -9,6 +9,7 @@
     "node": ">=18.20"
   },
   "scripts": {
+    "test": "node --test packages/psycho-frame/test/*.test.mjs",
     "verify:docs": "node packages/psycho-frame/src/cli.mjs verify",
     "change-scope": "node packages/psycho-frame/src/cli.mjs scope",
     "doctor": "node packages/psycho-frame/src/cli.mjs doctor",
