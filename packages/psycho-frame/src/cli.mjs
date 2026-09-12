@@ -40,17 +40,19 @@ const USAGE = `psycho-frame ${version} — 见山处（Yondren）精神力骨架
 用法: psycho-frame <命令> [参数]
 
 命令:
-  verify            文档门禁：链接/锚点、决策格式、任务头字段、字数预算、工作模式取值
+  verify [--json]   文档门禁：链接/锚点、决策格式、任务头字段、字数预算、工作模式取值；
+                    --json 输出机器可读结果
   scope|change-scope --base <ref> [--head <ref>]
                     四层改动面报告（base 必须显式提供）
   mode              显示当前工作模式（plan、confirmAmbiguous）
   mode set <key>=<value> [<key>=<value>]
                     设置工作模式并写回配置（plan=on|off，confirmAmbiguous=true|false）
   mode reset        恢复默认工作模式（plan=on，confirmAmbiguous=true）
-  upgrade [目录]     骨架一键升级：模板优先，被覆盖的本地改动自动备份到
+  upgrade [目录] [--dry-run] [--exit-code]
+                    骨架一键升级：模板优先，被覆盖的本地改动自动备份到
                     .psycho-frame-upgrade/；配置增量合并；README.md 保留本地；加 --dry-run
-                    只预览（有变更退出码 1）。无目录参数时定位到 git 仓库根，非骨架项目与
-                    框架源码仓库中止
+                    只预览，--exit-code 让预览有变更时退出码为 1。无目录参数时定位到
+                    git 仓库根，非骨架项目与框架源码仓库中止
   self-upgrade       CLI 自身升级：查询 npm registry，npm 全局安装自动升级到最新版，
                     其余安装方式打印对应指引；加 --check 只查询（退出码 0=最新、1=落后）
   init [目录]       新项目脚手架（目标目录须为空，默认 .）
@@ -94,15 +96,17 @@ const COMMAND_HELP = {
 
 退出码: 0（成功）；2（未知命令名）
 `,
-  verify: `psycho-frame verify
+  verify: `psycho-frame verify [--json]
 
 文档门禁：链接/锚点、决策结构与格式、任务头字段、字数预算、工作模式取值。
-仓库根 = cwd 的 git toplevel（无 git 时回退 cwd）。
+仓库根 = cwd 的 git toplevel（无 git 时回退 cwd）。--json 输出
+{ formatVersion, ok, count, errors }。
 
 示例:
   psycho-frame verify
+  psycho-frame verify --json
 
-退出码: 0（通过）；1（门禁失败）
+退出码: 0（通过）；1（门禁失败）；2（参数非法）
 `,
   scope: `psycho-frame scope --base <ref> [--head <ref>]
 
@@ -132,18 +136,20 @@ confirmAmbiguous=true|false；reset 恢复默认（plan=on，confirmAmbiguous=tr
 
 退出码: 0（成功）；1（配置写回失败）；2（参数非法）
 `,
-  upgrade: `psycho-frame upgrade [目录] [--dry-run]
+  upgrade: `psycho-frame upgrade [目录] [--dry-run] [--exit-code]
 
 骨架一键升级：模板优先，被覆盖的本地改动自动备份到 .psycho-frame-upgrade/；
 配置增量合并；README.md 保留本地。无目录参数时定位到 git 仓库根，非骨架项目
-中止；框架源码仓库（模板源头）中止；--dry-run 只预览。
+中止；框架源码仓库（模板源头）中止；--dry-run 只预览，--exit-code 让预览有变更时
+退出码为 1。
 
 示例:
   psycho-frame upgrade
   psycho-frame upgrade --dry-run
+  psycho-frame upgrade --dry-run --exit-code
   psycho-frame upgrade my-project
 
-退出码: 0（成功）；1（错误或 dry-run 有变更）
+退出码: 0（成功或 dry-run 无变更）；1（错误或 --exit-code 下有变更）；2（参数非法）
 `,
   'self-upgrade': `psycho-frame self-upgrade [--check]
 
@@ -235,20 +241,28 @@ function resolveRoot() {
 
 switch (cmd) {
   case 'verify': {
+    const json = rest.includes('--json')
+    const unknown = rest.filter(a => a !== '--json')
+    if (unknown.length > 0) {
+      console.error(`psycho-frame verify: 未知参数 "${unknown[0]}"\n\n${USAGE}`)
+      process.exit(2)
+    }
     const root = resolveRoot()
     let result
     try {
       result = verifyDocs(root)
     } catch (e) {
-      console.error(`psycho-frame verify: ${e.message}`)
-      process.exit(1)
+      result = { errors: [`psycho-frame verify: ${e.message}`], count: 0 }
     }
     const { errors, count } = result
-    if (errors.length > 0) {
+    if (json) {
+      console.log(JSON.stringify({ formatVersion: 1, ok: errors.length === 0, count, errors }, null, 2))
+    } else if (errors.length > 0) {
       console.error(errors.join('\n'))
-      process.exit(1)
+    } else {
+      console.log(`文档门禁通过：${count} 个 Markdown 文件，链接与锚点可解析，决策结构与格式合规，任务头字段合规，预算达标，工作模式取值合规`)
     }
-    console.log(`文档门禁通过：${count} 个 Markdown 文件，链接与锚点可解析，决策结构与格式合规，任务头字段合规，预算达标，工作模式取值合规`)
+    if (errors.length > 0) process.exit(1)
     break
   }
   case 'scope':
@@ -304,14 +318,26 @@ switch (cmd) {
     break
   }
   case 'upgrade': {
+    const KNOWN = new Set(['--dry-run', '--exit-code'])
+    const unknown = rest.find(a => a.startsWith('--') && !KNOWN.has(a))
+    if (unknown !== undefined) {
+      console.error(`psycho-frame upgrade: 未知参数 "${unknown}"\n\n${USAGE}`)
+      process.exit(2)
+    }
+    const positional = rest.filter(a => !a.startsWith('--'))
+    if (positional.length > 1) {
+      console.error(`psycho-frame upgrade: 最多提供一个目录参数\n\n${USAGE}`)
+      process.exit(2)
+    }
     const dryRun = rest.includes('--dry-run')
-    const explicit = rest.filter(a => a !== '--dry-run')[0]
+    const exitCode = rest.includes('--exit-code')
+    const explicit = positional[0]
     try {
       const result = explicit !== undefined
         ? runUpgrade({ target: explicit, dryRun })
         : runUpgrade({ target: '.', cwd: resolveRoot(), dryRun })
       if (result.errors) process.exit(1)
-      if (dryRun && result.changed > 0) process.exit(1)
+      if (dryRun && exitCode && result.changed > 0) process.exit(1)
     } catch (e) {
       console.error(`psycho-frame upgrade: ${e.message}`)
       process.exit(1)

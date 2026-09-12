@@ -35,7 +35,8 @@
 - 两包锁步发布在 [scripts/release.mjs](../scripts/release.mjs)：bump 两包与模板 pin、预检、
   pack 检查、commit/tag、按序双发与推送（默认不发布不推送）。
 - 模板在 `packages/psycho-frame/template/`；新增可选模块同步 docs/cookbook/。
-- 官网页面映射在 `website/scripts/sync-content.mjs` 的 MAP；新增文档页先加映射再发布。
+- 官网页面映射在 `website/scripts/content-map.mjs`（sync 脚本与 sidebar 共用）；新增文档页
+  先加映射再发布。
 - 高频操作沉淀为 `.agents/skills/<name>/SKILL.md`。
 - 测试在 `packages/psycho-frame/test/`（node:test，零依赖）；CI 在 Node 20/22 上跑
   verify + doctor + test（[.github/workflows/ci.yml](../.github/workflows/ci.yml)）。

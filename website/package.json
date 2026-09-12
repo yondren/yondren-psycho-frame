@@ -7,7 +7,7 @@
     "sync": "node scripts/sync-content.mjs",
     "docs:dev": "node scripts/sync-content.mjs && vitepress dev",
     "docs:build": "node scripts/sync-content.mjs && vitepress build",
-    "docs:preview": "vitepress preview"
+    "docs:preview": "node scripts/sync-content.mjs && vitepress preview"
   },
   "devDependencies": {
     "vitepress": "^1.6.3"
