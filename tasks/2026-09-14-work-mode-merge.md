@@ -1,7 +1,7 @@
 # 工作模式新增合流开关（merge）
 
 - task_key: work-mode-merge
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-14
 - updated: 2026-09-14
 - report: [reports/work-mode-merge.md](../reports/work-mode-merge.md)
@@ -29,6 +29,6 @@
 - [DONE] 2026-09-14 评估完成并落成提案，转入实现。
 - [DONE] 2026-09-14 开关、CLI 文案、完成定义、报告字段、合流 cookbook、doctor 可见性与模板同步
   全部落地；`pnpm test` 99 项全绿、`pnpm verify:docs` 通过、根与模板预算达标。
-- [IN_PROGRESS] 2026-09-14 提交后按 [merge.md](../docs/cookbook/merge.md) 合流回 `main`，再置
-  `DONE`；决策记录见
+- [DONE] 2026-09-14 按 [merge.md](../docs/cookbook/merge.md) 以 merge 提交 `0e2639d` 合流回 `main`，
+  worktree 已移除；决策记录见
   [decisions/implemented/feature/2026-09-14-work-mode-merge.md](../decisions/implemented/feature/2026-09-14-work-mode-merge.md)。

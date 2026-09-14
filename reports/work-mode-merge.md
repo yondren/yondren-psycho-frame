@@ -1,7 +1,7 @@
 # 合流开关（merge）执行报告
 
 - task_key: work-mode-merge
-- 状态: IN_PROGRESS（实现与验证完成，待提交与合流）
+- 状态: DONE（实现、验证与合流完成）
 
 ## 1. 改了哪些文件
 
@@ -58,8 +58,8 @@ proposed 转为 implemented，与代码同一提交；模板与仓库自举实�
 
 ## 6. 合流状态
 
-待合流：本分支 `work-mode-merge` 领先 `main`，提交完成后按
-[merge.md](../docs/cookbook/merge.md) 用 `--no-ff` 合入 main checkout 并删除 worktree。
+已合流：分支 `work-mode-merge` 以 `--no-ff` 合入 `main`（merge 提交 `0e2639d`），worktree 已移除；
+任务置 `DONE`。
 
 ## 7. 还剩什么阻塞
 
