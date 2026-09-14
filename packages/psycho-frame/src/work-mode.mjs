@@ -1,14 +1,15 @@
-// 工作模式：plan（on/off）、confirmAmbiguous（true/false）与 fleet（on/off）三把正交开关，真源在
-// <root>/.psycho-frame.json 的 workMode 字段，缺省用内置默认；取值封闭，由本模块
+// 工作模式：plan（on/off）、confirmAmbiguous（true/false）、fleet（on/off）与 merge（off/ask/auto）
+// 四把正交开关，真源在 <root>/.psycho-frame.json 的 workMode 字段，缺省用内置默认；取值封闭，由本模块
 // 校验，verify 门禁与 mode CLI 共用。config 读取也收敛在这里（verify-docs 复用）。
 // 用法: import { readWorkMode, setWorkMode, validateWorkMode, readConfig } from './work-mode.mjs'
 import fs from 'node:fs'
 import path from 'node:path'
 
-export const DEFAULT_WORK_MODE = Object.freeze({ plan: 'on', confirmAmbiguous: true, fleet: 'off' })
+export const DEFAULT_WORK_MODE = Object.freeze({ plan: 'on', confirmAmbiguous: true, fleet: 'off', merge: 'ask' })
 export const PLAN_VALUES = ['on', 'off']
 export const CONFIRM_VALUES = [true, false]
 export const FLEET_VALUES = ['on', 'off']
+export const MERGE_VALUES = ['off', 'ask', 'auto']
 
 export function configPath(root) {
   return path.join(root, '.psycho-frame.json')
@@ -34,7 +35,7 @@ export function validateWorkMode(value) {
   const errors = []
   if (value === undefined) return errors
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    errors.push('workMode 必须为 { plan, confirmAmbiguous, fleet } 对象')
+    errors.push('workMode 必须为 { plan, confirmAmbiguous, fleet, merge } 对象')
     return errors
   }
   if (value.plan !== undefined && !PLAN_VALUES.includes(value.plan)) {
@@ -46,6 +47,9 @@ export function validateWorkMode(value) {
   if (value.fleet !== undefined && !FLEET_VALUES.includes(value.fleet)) {
     errors.push(`workMode.fleet 必须为 ${FLEET_VALUES.join(' / ')}（现为 ${JSON.stringify(value.fleet)}）`)
   }
+  if (value.merge !== undefined && !MERGE_VALUES.includes(value.merge)) {
+    errors.push(`workMode.merge 必须为 ${MERGE_VALUES.join(' / ')}（现为 ${JSON.stringify(value.merge)}）`)
+  }
   return errors
 }
 
@@ -55,6 +59,7 @@ export function readWorkMode(root) {
     plan: wm.plan ?? DEFAULT_WORK_MODE.plan,
     confirmAmbiguous: wm.confirmAmbiguous ?? DEFAULT_WORK_MODE.confirmAmbiguous,
     fleet: wm.fleet ?? DEFAULT_WORK_MODE.fleet,
+    merge: wm.merge ?? DEFAULT_WORK_MODE.merge,
   }
 }
 

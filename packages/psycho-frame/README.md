@@ -32,7 +32,7 @@ pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版�
 | `self-upgrade` | CLI 自身升级：npm 全局安装自动 `npm install -g` 到最新版，其余安装方式打印对应指引；`--check` 只查询（退出码 0=最新、1=落后） |
 | `init [目录]` | 新项目脚手架，生成知识四层 + AGENTS.md + 配置 |
 | `adopt [目录]` | 旧项目采纳，add-only：已存在的文件跳过并报告 |
-| `doctor [目录]` | 结构漂移检查：必需文件、配置、脚本 |
+| `doctor [目录]` | 结构漂移检查：必需文件、配置、脚本，以及领先集成分支的本地分支（未合流的任务分支） |
 | `help [命令]` | 无参数打印全量用法；带命令名打印该命令专属帮助 |
 | `version` | 输出版本号（等价 `--version` / `-v`） |
 
@@ -44,7 +44,7 @@ pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版�
 | --- | --- | --- |
 | `decisionClasses` | 6 个内置类别 | `decisions/` 类别封闭集合 |
 | `taskStatuses` | 5 个内置状态 | `tasks/` 状态枚举 |
-| `workMode` | `{ plan: "on", confirmAmbiguous: true, fleet: "off" }` | 每次会话行为开关：是否先出计划等确认、需求不明是否必须询问、是否优先派发子代理并行（舰队模式）；用 `mode` 命令调整 |
+| `workMode` | `{ plan: "on", confirmAmbiguous: true, fleet: "off", merge: "ask" }` | 每次会话行为开关：是否先出计划等确认、需求不明是否必须询问、是否优先派发子代理并行（舰队模式）、任务分支是否本地合流（`merge`：off/ask/auto）；用 `mode` 命令调整 |
 | `budgets` | 无（不启用） | `{ 文件路径: 字数上限 }`，CJK 逐字计 1、拉丁/数字串计 1 词，超限门禁失败 |
 | `ignore` | 无 | 相对根的前缀列表，跳过门禁 |
 

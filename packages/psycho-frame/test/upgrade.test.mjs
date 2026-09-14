@@ -110,6 +110,20 @@ test('upgrade：配置对象键下探一层补缺，不覆盖用户值', () => {
   assert.equal(merged.budgets['docs/custom.md'], 42)
 })
 
+test('upgrade：老配置的 workMode 补 merge 默认值，保留用户值', () => {
+  const { cwd, root } = skeleton()
+  write(root, '.psycho-frame.json', JSON.stringify({
+    workMode: { plan: 'off', confirmAmbiguous: false, fleet: 'on' },
+    customKey: true,
+  }, null, 2))
+  const r = run({ cwd, target: 'proj' })
+  assert.equal(r.errors, false)
+  const merged = JSON.parse(fs.readFileSync(path.join(root, '.psycho-frame.json'), 'utf8'))
+  assert.equal(merged.workMode.merge, 'ask')
+  assert.equal(merged.workMode.plan, 'off')
+  assert.equal(merged.customKey, true)
+})
+
 test('upgrade：--dry-run 不落盘', () => {
   const { cwd, root } = skeleton()
   write(root, 'AGENTS.md', '# 本地改过的 AGENTS\n')

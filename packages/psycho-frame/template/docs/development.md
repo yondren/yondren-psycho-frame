@@ -18,7 +18,8 @@
    补登记，且不写 reports/ 与决策记录。
 5. 验证：`pnpm change-scope --base <base-ref>` 取改动面，只跑覆盖该面的最窄检查。
 6. 同步：非平凡变更更新或新增 decisions/ 决策记录与 reports/<task_key>.md（微小改动豁免）。
-7. 门禁：`pnpm verify:docs` 通过后提交，提交信息含 task_key。
+7. 门禁：`pnpm verify:docs` 通过后提交，提交信息含 task_key；完成顺序（含合流）见
+   [tasks/README.md](../tasks/README.md)。
 
 ## 门禁接入（既有项目）
 
@@ -37,7 +38,7 @@
 ## 工作模式
 
 工作模式是每次会话的行为开关，真源在 [.psycho-frame.json](../.psycho-frame.json) 的
-`workMode` 字段，三把正交开关：
+`workMode` 字段，四把正交开关：
 
 - `plan=on`：plan 模式。改动文件前先在对话中给出实施计划，经用户确认后才动手。
 - `plan=off`：动手前仍显式说明将要执行的计划，但不等待确认。
@@ -46,9 +47,11 @@
 - `fleet=on`：舰队模式。批量、检索、整理、提取、分类等可独立切分的工作优先派发子代理并行，
   主线程保留架构决策与最终验收。
 - `fleet=off`：不强制派发；派不派由收益是否超过协调成本决定。
+- `merge=off|ask|auto`（默认 `ask`）：任务分支的本地合流，`auto` 合到父分支、`ask` 先问、`off`
+  不合流，都不含推送；触发、目标与失败语义见 [cookbook/merge.md](cookbook/merge.md)。
 
-调整方式：对话中直接要求，Agent 用 `psycho-frame mode set <key>=<value>` 持久化；也可自行
-运行 `psycho-frame mode`（查看）与 `psycho-frame mode reset`（恢复默认）。取值封闭，配置非法
+调整方式：对话中直接要求，Agent 用 `psycho-frame mode set <key>=<value>` 持久化；也可运行
+`psycho-frame mode`（查看）与 `mode reset`（恢复默认）。取值封闭，配置非法
 时 `pnpm verify:docs` 失败。派发包与收口见 [cookbook/fleet-mode.md](cookbook/fleet-mode.md)。
 
 ## 门禁分工
