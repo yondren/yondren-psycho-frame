@@ -4,10 +4,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
+import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { DEFAULT_WORK_MODE } from './work-mode.mjs'
 
 const templateRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'template')
+const GIT_BRANCH_LIMIT = 8
 
 // npm/pnpm pack 会丢弃名为 .gitignore 的文件且 npm install 会把它改名，故模板里存
 // gitignore（无点），写入宿主时映射回 .gitignore。
@@ -79,6 +81,57 @@ export function scaffold({ target = '.', mode, cwd = process.cwd(), stdout = con
   return { exitCode: 0, written, skipped }
 }
 
+/** 仓库根（含 linked worktree）；非 git 仓库或 git 不可用时返回 null。 */
+function gitToplevel(root) {
+  try {
+    const top = execFileSync('git', ['-C', root, 'rev-parse', '--show-toplevel'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
+    return top === '' ? null : fs.realpathSync(top)
+  } catch {
+    return null
+  }
+}
+
+/** 本地集成分支名：优先 main，其次 master；都不存在时返回 null。 */
+function integrationBranch(root) {
+  for (const name of ['main', 'master']) {
+    try {
+      execFileSync('git', ['-C', root, 'rev-parse', '--verify', '--quiet', `refs/heads/${name}`], {
+        stdio: ['ignore', 'ignore', 'ignore'],
+      })
+      return name
+    } catch { /* 换下一个候选 */ }
+  }
+  return null
+}
+
+/** 领先 base 的本地分支与领先提交数，按领先数降序；git 不可用或 base 缺失时返回 []。 */
+export function branchesAhead(root, base) {
+  let names = ''
+  try {
+    names = execFileSync('git', ['-C', root, 'branch', '--no-merged', base, '--format=%(refname:short)'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
+  } catch {
+    return []
+  }
+  const rows = []
+  for (const name of names.split('\n').map(s => s.trim()).filter(Boolean)) {
+    if (name === base) continue
+    try {
+      const ahead = Number(execFileSync('git', ['-C', root, 'rev-list', '--count', `${base}..${name}`], {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim())
+      if (Number.isInteger(ahead) && ahead > 0) rows.push({ branch: name, ahead })
+    } catch { /* 读不到的单个分支跳过，doctor 不因 git 细节失败 */ }
+  }
+  return rows.sort((a, b) => b.ahead - a.ahead || a.branch.localeCompare(b.branch))
+}
+
 export function doctor({ target = '.', cwd = process.cwd(), stdout = console.log, stderr = console.error }) {
   const root = path.resolve(cwd, target)
   const missing = REQUIRED_FILES.filter(f => !fs.existsSync(path.join(root, f)))
@@ -125,6 +178,22 @@ export function doctor({ target = '.', cwd = process.cwd(), stdout = console.log
     }
   } else {
     notes.push('无 package.json：跳过脚本检查（非 Node 项目可忽略）')
+  }
+
+  let isRepoRoot = false
+  try {
+    isRepoRoot = gitToplevel(root) === fs.realpathSync(root)
+  } catch { /* 目录不存在等情况：跳过分支检查 */ }
+  if (isRepoRoot) {
+    const base = integrationBranch(root)
+    if (base !== null) {
+      const ahead = branchesAhead(root, base)
+      if (ahead.length > 0) {
+        const shown = ahead.slice(0, GIT_BRANCH_LIMIT).map(r => `${r.branch}（领先 ${r.ahead} 个提交）`).join('、')
+        const rest = ahead.length > GIT_BRANCH_LIMIT ? `（共 ${ahead.length} 个分支）` : ''
+        notes.push(`有 ${ahead.length} 个本地分支领先 ${base}：${shown}${rest}；按 workMode.merge 收束，或在任务卡与报告写明未合流的分支名与原因`)
+      }
+    }
   }
 
   for (const n of notes) stdout(`[note] ${n}`)

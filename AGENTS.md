@@ -10,7 +10,7 @@
 [docs/development.md](docs/development.md)，非平凡变更的计划走 [decisions/](decisions/README.md) 提案格式。
 
 ## 工作模式
-工作模式真源在 [.psycho-frame.json](.psycho-frame.json) 的 `workMode`（`plan`、`confirmAmbiguous`、`fleet`）；
+工作模式真源在 [.psycho-frame.json](.psycho-frame.json) 的 `workMode`（`plan`、`confirmAmbiguous`、`fleet`、`merge`）；
 语义与调整方式见 [docs/development.md](docs/development.md)。对话中可直接要求调整，Agent 用
 `psycho-frame mode set` 持久化；也可自行运行 `psycho-frame mode` 查看或 `mode reset` 恢复默认。
 

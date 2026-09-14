@@ -19,14 +19,15 @@ test('validateWorkMode：undefined 合法（用内置默认）', () => {
 test('validateWorkMode：非对象非法', () => {
   assert.equal(validateWorkMode(null).length, 1)
   assert.equal(validateWorkMode(['on']).length, 1)
-  assert.match(validateWorkMode('on')[0], /必须为 \{ plan, confirmAmbiguous, fleet \} 对象/)
+  assert.match(validateWorkMode('on')[0], /必须为 \{ plan, confirmAmbiguous, fleet, merge \} 对象/)
 })
 
 test('validateWorkMode：取值封闭', () => {
-  assert.deepEqual(validateWorkMode({ plan: 'off', confirmAmbiguous: false, fleet: 'on' }), [])
+  assert.deepEqual(validateWorkMode({ plan: 'off', confirmAmbiguous: false, fleet: 'on', merge: 'auto' }), [])
   assert.match(validateWorkMode({ plan: 'maybe' })[0], /workMode.plan/)
   assert.match(validateWorkMode({ confirmAmbiguous: 'yes' })[0], /workMode.confirmAmbiguous/)
   assert.match(validateWorkMode({ fleet: 'maybe' })[0], /workMode.fleet/)
+  assert.match(validateWorkMode({ merge: 'always' })[0], /workMode.merge/)
 })
 
 test('readConfig：缺失返回空对象', () => {
@@ -57,6 +58,24 @@ test('readWorkMode：fleet 缺省补 off，配置值优先', () => {
   assert.equal(readWorkMode(root).fleet, 'on')
 })
 
+test('readWorkMode：merge 缺省补 ask，配置值优先', () => {
+  const root = tempDir()
+  write(root, '.psycho-frame.json', JSON.stringify({ workMode: { plan: 'on' } }))
+  assert.equal(readWorkMode(root).merge, 'ask')
+  setWorkMode(root, { merge: 'auto' })
+  assert.equal(readWorkMode(root).merge, 'auto')
+  setWorkMode(root, { merge: 'off' })
+  assert.equal(readWorkMode(root).merge, 'off')
+})
+
+test('setWorkMode：merge 非法取值不落盘', () => {
+  const root = tempDir()
+  const result = setWorkMode(root, { merge: 'always' })
+  assert.equal(result.ok, false)
+  assert.match(result.errors[0], /workMode.merge/)
+  assert.equal(fs.existsSync(configPath(root)), false)
+})
+
 test('setWorkMode：fleet 非法取值不落盘', () => {
   const root = tempDir()
   const result = setWorkMode(root, { fleet: 'always' })
@@ -69,11 +88,11 @@ test('setWorkMode：写入并可增量合并', () => {
   const root = tempDir()
   const first = setWorkMode(root, { plan: 'off' })
   assert.equal(first.ok, true)
-  assert.deepEqual(first.workMode, { plan: 'off', confirmAmbiguous: true, fleet: 'off' })
+  assert.deepEqual(first.workMode, { plan: 'off', confirmAmbiguous: true, fleet: 'off', merge: 'ask' })
   const second = setWorkMode(root, { confirmAmbiguous: false })
   assert.equal(second.ok, true)
-  assert.deepEqual(second.workMode, { plan: 'off', confirmAmbiguous: false, fleet: 'off' })
-  assert.deepEqual(readWorkMode(root), { plan: 'off', confirmAmbiguous: false, fleet: 'off' })
+  assert.deepEqual(second.workMode, { plan: 'off', confirmAmbiguous: false, fleet: 'off', merge: 'ask' })
+  assert.deepEqual(readWorkMode(root), { plan: 'off', confirmAmbiguous: false, fleet: 'off', merge: 'ask' })
 })
 
 test('setWorkMode：保留配置中的其他键', () => {

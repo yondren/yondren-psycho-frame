@@ -2,8 +2,27 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
+import { execFileSync } from 'node:child_process'
 import { scaffold, doctor, sanitizeName, walkFiles } from '../src/init.mjs'
 import { tempDir, write, noop } from './helpers.mjs'
+
+/** 在 root 建一个含 main 与一个领先分支的 git 仓库，用于 doctor 的分支可见性。 */
+function gitRepoWithAheadBranch() {
+  const root = tempDir()
+  const git = (...args) => execFileSync('git', ['-C', root, ...args], { stdio: ['ignore', 'pipe', 'ignore'] })
+  git('init', '-q')
+  git('config', 'user.email', 'test@example.com')
+  git('config', 'user.name', 'test')
+  scaffold({ cwd: root, target: '.', mode: 'adopt', stdout: noop, stderr: noop })
+  git('add', '-A')
+  git('commit', '-q', '-m', 'init')
+  git('branch', '-m', 'main')
+  git('checkout', '-q', '-b', 'task-branch')
+  write(root, 'work.txt', 'x')
+  git('add', 'work.txt')
+  git('commit', '-q', '-m', 'work [task-branch]')
+  return root
+}
 
 test('sanitizeName：规整为 npm 名', () => {
   assert.equal(sanitizeName('My Project!'), 'my-project')
@@ -29,6 +48,7 @@ test('init：空目录生成骨架，gitignore 改名为 .gitignore，占位符�
   assert.ok(fs.existsSync(path.join(cwd, 'proj/.psycho-frame.json')))
   const cfg = JSON.parse(fs.readFileSync(path.join(cwd, 'proj/.psycho-frame.json'), 'utf8'))
   assert.equal(cfg.workMode.fleet, 'off')
+  assert.equal(cfg.workMode.merge, 'ask')
   const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'proj/package.json'), 'utf8'))
   assert.equal(pkg.name, 'proj')
   assert.equal(pkg.private, true)
@@ -121,6 +141,46 @@ test('模板：舰队模式文档与预算随模板落地', () => {
   const index = fs.readFileSync(path.join(cwd, 'proj/docs/cookbook/README.md'), 'utf8')
   assert.ok(index.includes('fleet-mode.md'))
   assert.ok(fs.existsSync(path.join(cwd, 'proj/docs/cookbook/fleet-mode.md')))
+})
+
+test('模板：合流开关文档与预算随模板落地', () => {
+  const cwd = tempDir()
+  scaffold({ cwd, target: 'proj', mode: 'init', stdout: noop, stderr: noop })
+  const dev = fs.readFileSync(path.join(cwd, 'proj/docs/development.md'), 'utf8')
+  assert.ok(dev.includes('merge=off|ask|auto') && dev.includes('cookbook/merge.md'))
+  const tasks = fs.readFileSync(path.join(cwd, 'proj/tasks/README.md'), 'utf8')
+  assert.ok(tasks.includes('合流'))
+  const cfg = JSON.parse(fs.readFileSync(path.join(cwd, 'proj/.psycho-frame.json'), 'utf8'))
+  assert.equal(cfg.budgets['docs/cookbook/merge.md'], 200)
+  const index = fs.readFileSync(path.join(cwd, 'proj/docs/cookbook/README.md'), 'utf8')
+  assert.ok(index.includes('merge.md'))
+  assert.ok(fs.existsSync(path.join(cwd, 'proj/docs/cookbook/merge.md')))
+})
+
+test('doctor：列出领先集成分支的本地分支', () => {
+  const root = gitRepoWithAheadBranch()
+  const r = doctor({ cwd: root, target: '.', stdout: noop, stderr: noop })
+  assert.equal(r.exitCode, 0)
+  const note = r.notes.find(n => n.includes('领先 main'))
+  assert.ok(note !== undefined, '未提示领先 main 的分支')
+  assert.match(note, /task-branch（领先 1 个提交）/)
+})
+
+test('doctor：无领先分支时静默（git 仓库仍通过）', () => {
+  const root = gitRepoWithAheadBranch()
+  execFileSync('git', ['-C', root, 'checkout', '-q', 'main'], { stdio: ['ignore', 'pipe', 'ignore'] })
+  execFileSync('git', ['-C', root, 'branch', '-D', 'task-branch'], { stdio: ['ignore', 'pipe', 'ignore'] })
+  const r = doctor({ cwd: root, target: '.', stdout: noop, stderr: noop })
+  assert.equal(r.exitCode, 0)
+  assert.equal(r.notes.some(n => n.includes('领先 main')), false)
+})
+
+test('doctor：非 git 目录跳过分支检查', () => {
+  const cwd = tempDir()
+  scaffold({ cwd, target: 'proj', mode: 'init', stdout: noop, stderr: noop })
+  const r = doctor({ cwd, target: 'proj', stdout: noop, stderr: noop })
+  assert.equal(r.exitCode, 0)
+  assert.equal(r.notes.some(n => n.includes('领先')), false)
 })
 
 test('doctor：缺 devDependency 时提示接入门禁', () => {

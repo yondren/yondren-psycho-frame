@@ -1,58 +1,67 @@
-# 合流开关（merge）评估报告
+# 合流开关（merge）执行报告
 
 - task_key: work-mode-merge
-- 状态: NOT_STARTED（评估与提案完成，实现未开工）
+- 状态: IN_PROGRESS（实现与验证完成，待提交与合流）
 
 ## 1. 改了哪些文件
 
-- `decisions/proposed/feature/2026-09-14-work-mode-merge.md`：新增提案（问题、方案、备选、验收、风险）
-- `tasks/2026-09-14-work-mode-merge.md`：新增任务卡，状态 `NOT_STARTED`
-- `reports/work-mode-merge.md`：本报告
-
-未改代码、配置与既有文档；`merge` 开关的实现归后续任务。
+- `packages/psycho-frame/src/work-mode.mjs`：`MERGE_VALUES`、默认 `merge: 'ask'`、
+  `validateWorkMode` / `readWorkMode` 覆盖 merge，对象报错文案补键名
+- `packages/psycho-frame/src/cli.mjs`：usage 与 `help mode` 展示 merge 取值、默认值与"不含推送"
+- `packages/psycho-frame/src/init.mjs`：新增 `branchesAhead`，doctor 在 git 仓库根列出领先
+  集成分支（main / master）的本地分支与领先提交数
+- 配置：根与模板 `.psycho-frame.json` 加 `workMode.merge`、`docs/cookbook/merge.md` 预算 200，
+  `docs/development.md` 预算 750 → 780
+- 文档：`docs/development.md`（语义 + 日常顺序第 7 步）、`docs/concepts.md`、
+  `docs/architecture.md`、`docs/cookbook/README.md`、`docs/cookbook/parallel-worktrees.md`（合流节
+  收敛为链接）、新增 `docs/cookbook/merge.md`、`tasks/README.md` 规则 2、`tasks/AGENTS.md`、
+  `reports/README.md` 模板
+- 模板同步：上述文件的 `packages/psycho-frame/template/` 副本与 `template/AGENTS.md`
+- 测试：`work-mode` / `cli` / `init` / `verify-docs` / `upgrade` 五个套件
+- 决策 `decisions/implemented/feature/2026-09-14-work-mode-merge.md`（由同名 proposed 记录转
+  implemented）、任务卡与本报告
 
 ## 2. 实现了什么
 
-未实现。本次只做问题评估与设计定案：
-
-- 定位"偶尔不主动合流"的四个契约缺口：完成定义止于提交（`tasks/README.md` 规则 2、
-  `docs/development.md` 日常顺序）、`plan=on` 下无合流授权、会话绑定 worktree 与 main checkout
-  做合流的规则冲突、没有"待合流"状态与可见性。
-- 定案开关形态：`workMode.merge = off | ask | auto`，默认 `ask`，`auto` 只做本地 merge-forward
-  到父分支（默认 `main`），**不含推送**；push 不并入开关。
-- 定案配套：完成定义、报告字段、`doctor` 可见性三件同时做，否则开关不生效。
+`workMode` 第四把正交开关 `merge`（off / ask / auto，默认 ask）：`auto` 在置 `DONE` 前把任务分支
+merge-forward 到父分支（默认 `main`，栈式逐层向上），`ask` 收尾先问，`off` 不合流，三者都不含
+推送。语义家在 `docs/development.md`，操作规格（触发、目标、步骤、失败语义）在
+`docs/cookbook/merge.md`。配套：`tasks/README.md` 规则 2 的完成顺序加入合流，报告模板加"合流
+状态"字段，`doctor` 列出领先集成分支的本地分支。`mode` CLI 的键集合、回显与 reset 仍由
+`DEFAULT_WORK_MODE` 派生，只改了 help 文案与示例。
 
 ## 3. 跑了哪些命令
 
-- 读 0.3.1 已发布内容：`git show v0.3.1:packages/psycho-frame/src/work-mode.mjs`、
-  `git show v0.3.1:packages/psycho-frame/template/{AGENTS.md,docs/development.md,docs/cookbook/parallel-worktrees.md}`
-- 消费者实测（本机 6 个 0.3.1 项目）：`git for-each-ref`、`git rev-list --count main..<branch>`、
-  `git status --short --branch`、读各自 `.psycho-frame.json` 的 `workMode`
-- 预算核算：按 `countWords` 口径统计 `.psycho-frame.json` 的 `budgets` 清单
-- `node packages/psycho-frame/src/cli.mjs verify`（基线，改动前 119 个 Markdown 文件通过）
+- `node --check` 覆盖 `work-mode.mjs` / `init.mjs` / `cli.mjs`
+- `pnpm test`（node:test 全量，99 项）
+- `node packages/psycho-frame/src/cli.mjs verify`（worktree 内，117 个 Markdown 文件）
+- 模板预算脚本：按 `countWords` 口径核对 `template/.psycho-frame.json` 清单全部达标
+- 冒烟：worktree 内 `doctor`（列出 9 个历史遗留分支）、`mode`（回显四项含 merge=ask）
 
 ## 4. 验证结果
 
-- 证据一（0.3.1 契约）：`workMode` 只有 `plan`、`confirmAmbiguous`；模板 `AGENTS.md` 不含 `main`、
-  合流与推送命令；合流只出现在按需文档的一节里，且只有"怎么做"没有"谁在何时做"。
-- 证据二（消费者分支模型）：6 个 0.3.1 项目共 103 个本地分支，其中 77 个为 `codex/*`，不是骨架的
-  `.worktrees/<task_key>`。
-- 证据三（未合流确实发生且不可见）：`typesugar-official-mp` 有 2 个、`yune-platform` 有 3 个分支
-  领先 main；`zw` 的 main 领先 `origin/main` 36 个提交、`yune-platform` 领先 12 个；
-  `TypeSugar-Website` main 有 31 个未提交文件；`YONDREN_shanwai` 无远端，`jmy-ai-school` 非 git 仓库。
-- 证据四（无可见性通道）：`doctor` 只查必需文件、配置与脚本；`change-scope` 只算 merge-base；
-  仓库内没有任何检查会指出"存在未合流分支"。
-- 门禁：本次改动后跑 `verify`，见第 5 节。
+- `pnpm test`：99 项全绿（新增 9 项：merge 取值封闭、缺省补 ask、非法不落盘、mode CLI 回显与
+  退出码、`help mode` 含"不含推送"、init 模板默认值与模板文档/预算、doctor 列出领先分支、
+  无领先分支时静默、非 git 目录跳过、upgrade 为老配置补 merge）
+- `pnpm verify:docs`：通过（117 个 Markdown 文件；链接、决策结构与格式、任务头字段、预算、
+  工作模式取值全部合规）
+- 模板预算：12 个清单文件全部达标（`merge.md` 192/200、`development.md` 734/780）
+- 根预算：13 个清单文件全部达标（`merge.md` 196/200、`development.md` 778/780）
+- 冒烟：`doctor` 在含领先分支的仓库给出 note 且退出码 0；`mode` 回显
+  `plan=on，confirmAmbiguous=true，fleet=off，merge=ask`
 
 ## 5. 文档与决策是否同步
 
-已同步。问题与设计写在提案
-[decisions/proposed/feature/2026-09-14-work-mode-merge.md](../decisions/proposed/feature/2026-09-14-work-mode-merge.md)，
-任务状态写在 [tasks/2026-09-14-work-mode-merge.md](../tasks/2026-09-14-work-mode-merge.md)；既有
-`docs/` 与模板未改动，`merge` 语义在实现时才进 `docs/development.md`，避免提案期产生第二事实源。
-改动后 `pnpm verify:docs` 通过（新增 2 个 Markdown 文件，共 121 个）。
+已同步。语义唯一事实源在 `docs/development.md`，合流操作规格独立成页 `docs/cookbook/merge.md`，
+其余位置只放链接；完成定义在 `tasks/README.md` 规则 2（`tasks/AGENTS.md` 同步）；决策记录由
+proposed 转为 implemented，与代码同一提交；模板与仓库自举实例的默认值、文档、预算一致。
 
-## 6. 还剩什么阻塞
+## 6. 合流状态
 
-无阻塞。实现未开工，开工前须先建 `.worktrees/work-mode-merge` 并把任务置 `IN_PROGRESS`；落地时会撞上
-常驻文档预算（`docs/development.md` 719/750、`docs/cookbook/fleet-mode.md` 396/400），需先搬迁或精简。
+待合流：本分支 `work-mode-merge` 领先 `main`，提交完成后按
+[merge.md](../docs/cookbook/merge.md) 用 `--no-ff` 合入 main checkout 并删除 worktree。
+
+## 7. 还剩什么阻塞
+
+无。包版本 bump 归 release 任务；`merge=auto` 的会话行为本身不进门禁，靠完成定义、报告字段与
+doctor 可见性看护。

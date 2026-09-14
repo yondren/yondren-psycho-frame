@@ -46,9 +46,8 @@ pnpm change-scope --base <父分支 ref>   # 显式 base，绝不猜 origin/<bra
 
 ## 6. 合流
 
-1. 修复落在引入问题的那一层，再逐层 merge-forward。
-2. 推送前核对远程 OID 未变（租约保护）。
-3. 完成后删除 worktree：`git worktree remove .worktrees/<task_key>`。
+任务置 `DONE` 前按 `workMode.merge` 把分支合流回父分支，触发、目标与失败语义见
+[merge.md](merge.md)；完成后删除 worktree：`git worktree remove .worktrees/<task_key>`。
 
 ## 验证清单
 

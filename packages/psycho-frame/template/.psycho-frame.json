@@ -17,7 +17,8 @@
   "workMode": {
     "plan": "on",
     "confirmAmbiguous": true,
-    "fleet": "off"
+    "fleet": "off",
+    "merge": "ask"
   },
   "budgets": {
     "AGENTS.md": 550,
@@ -27,8 +28,9 @@
     "docs/architecture.md": 600,
     "docs/cookbook/README.md": 120,
     "docs/cookbook/parallel-worktrees.md": 400,
+    "docs/cookbook/merge.md": 200,
     "docs/cookbook/fleet-mode.md": 400,
-    "docs/development.md": 750,
+    "docs/development.md": 780,
     "docs/postmortem/README.md": 120,
     "reports/README.md": 250,
     "tasks/README.md": 300
