@@ -43,18 +43,21 @@ pnpm verify:docs
 
 门禁是护栏，不是装饰：规则一旦机器可校验，就不依赖"记得去改"。
 
-## 工作模式：先规划还是先动手
+## 工作模式：先规划、怎么说话、要不要工程化
 
-真源在 [.psycho-frame.json](../.psycho-frame.json) 的 `workMode`：
+真源在 [.psycho-frame.json](../.psycho-frame.json) 的 `workMode`，六把正交开关；取值、语义与耦合
+矩阵见 [工作模式](modes.md)：
 
-- `plan`：`on` 时改动前先给计划并等确认。
-- `confirmAmbiguous`：`true` 时需求有歧义必须先问，禁止自行假设。
-- `fleet`：`on` 时可独立切分的批量工作优先派发子代理并行，主线程留决策与验收。
-- `merge`：`auto` 时任务分支在置 `DONE` 前自动合流到父分支，`ask` 先问，`off` 不合流；都不含推送。
+- 纪律：`plan`（改动前是否等确认）、`confirmAmbiguous`（歧义是否必问）、`fleet`（是否派子代理
+  并行）、`merge`（任务分支是否合流）。
+- 沟通语域 `audience`：`expert` 直接说术语，`product` 讲影响与取舍，`novice` 从零解释并给可复制
+  命令。
+- 工程化 `engineering`：`on` 时方案阶段逐项过工程化清单；非专业语域下清单照过，只把说法换成
+  用户听得懂的。
 
 ```sh
 pnpm exec psycho-frame mode
-pnpm exec psycho-frame mode set plan=off
+pnpm exec psycho-frame mode set audience=product
 ```
 
 ## 零运行时依赖，换 Agent 零迁移

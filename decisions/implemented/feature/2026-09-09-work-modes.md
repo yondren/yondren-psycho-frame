@@ -16,13 +16,13 @@ Agent 在骨架内每次会话的行为纪律（是否强制先出计划并经�
   门禁校验，非法即失败。
 - `plan=on` 是 plan 模式：改动文件前先在对话中给出实施计划，经用户确认后才动手；
   `plan=off` 动手前仍显式说明将要执行的计划，但不等待确认（off 不等于不计划）。
-  语义的唯一事实源在 docs/development.md，根 AGENTS.md 只放链接。
+  语义的唯一事实源在 [docs/modes.md](../../../docs/modes.md)，根 AGENTS.md 只放链接。
 - 新增 CLI `psycho-frame mode`（查看）/ `mode set <key>=<value>`（校验并写回配置）/
   `mode reset`（恢复默认）；doctor 对缺失 workMode 给出提示。
 - 对话配置 = 用户在对话中直接要求调整，Agent 用 `mode set` 持久化到配置；配置是唯一
   真源，对话不产生第二事实源。
 - 取值、读写与默认收敛在 `packages/psycho-frame/src/work-mode.mjs`，verify 门禁与
-  mode CLI 共用；模板与仓库自举实例（AGENTS.md、docs/development.md、.psycho-frame.json）
+  mode CLI 共用；模板与仓库自举实例（AGENTS.md、docs/modes.md、.psycho-frame.json）
   同步同一批默认与语义。
 
 ## Alternatives considered

@@ -18,7 +18,9 @@
     "plan": "on",
     "confirmAmbiguous": true,
     "fleet": "off",
-    "merge": "ask"
+    "merge": "ask",
+    "audience": "expert",
+    "engineering": "off"
   },
   "ignore": [
     ".local/"
@@ -34,6 +36,7 @@
     "docs/cookbook/merge.md": 200,
     "docs/cookbook/fleet-mode.md": 400,
     "docs/development.md": 780,
+    "docs/modes.md": 850,
     "docs/postmortem/README.md": 120,
     "reports/README.md": 250,
     "tasks/README.md": 300

@@ -37,22 +37,12 @@
 
 ## 工作模式
 
-工作模式是每次会话的行为开关，真源在 [.psycho-frame.json](../.psycho-frame.json) 的
-`workMode` 字段，四把正交开关：
-
-- `plan=on`：plan 模式。改动文件前先在对话中给出实施计划，经用户确认后才动手。
-- `plan=off`：动手前仍显式说明将要执行的计划，但不等待确认。
-- `confirmAmbiguous=true`：需求不明确（未确认的需求、歧义、缺失信息）必须先向用户确认，禁止自行假设。
-- `confirmAmbiguous=false`：允许合理假设并继续，假设须在计划或报告中显式标注。
-- `fleet=on`：舰队模式。批量、检索、整理、提取、分类等可独立切分的工作优先派发子代理并行，
-  主线程保留架构决策与最终验收。
-- `fleet=off`：不强制派发；派不派由收益是否超过协调成本决定。
-- `merge=off|ask|auto`（默认 `ask`）：任务分支的本地合流，`auto` 合到父分支、`ask` 先问、`off`
-  不合流，都不含推送；触发、目标与失败语义见 [cookbook/merge.md](cookbook/merge.md)。
+工作模式真源在 [.psycho-frame.json](../.psycho-frame.json) 的 `workMode`：纪律开关 `plan`、
+`confirmAmbiguous`、`fleet`、`merge`，加沟通语域 `audience` 与工程化 `engineering` 两条轴；
+取值、语义与耦合矩阵见 [modes.md](modes.md)。
 
 调整方式：对话中直接要求，Agent 用 `psycho-frame mode set <key>=<value>` 持久化；也可运行
-`psycho-frame mode`（查看）与 `mode reset`（恢复默认）。取值封闭，配置非法
-时 `pnpm verify:docs` 失败。派发包与收口见 [cookbook/fleet-mode.md](cookbook/fleet-mode.md)。
+`psycho-frame mode`（查看）与 `mode reset`（恢复默认）。配置非法时 `pnpm verify:docs` 失败。
 
 ## 门禁分工
 

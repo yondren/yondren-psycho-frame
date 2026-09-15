@@ -27,7 +27,7 @@ pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版�
 | --- | --- |
 | `verify [--json]` | 文档门禁：链接/锚点、决策结构与格式、任务头字段、字数预算、工作模式取值；`--json` 输出 `{ formatVersion, ok, count, errors }` |
 | `scope --base <ref>` | 四层改动面报告（committed/staged/unstaged/untracked，JSON） |
-| `mode` | 查看当前工作模式；`mode set <key>=<value>` 设置并写回配置，`mode reset` 恢复默认 |
+| `mode` | 查看当前工作模式（六把开关）；`mode set <key>=<value>` 设置并写回配置，`mode reset` 恢复默认 |
 | `upgrade [目录]` | 骨架一键升级：模板优先，被覆盖的本地改动备份到 `.psycho-frame-upgrade/`，配置增量合并（对象键下探一层补缺），README.md 保留本地；`--dry-run` 只预览，`--exit-code` 让预览有变更时退出码 1；无目录参数时定位 git 仓库根，非骨架项目与框架源码仓库中止 |
 | `self-upgrade` | CLI 自身升级：npm 全局安装自动 `npm install -g` 到最新版，其余安装方式打印对应指引；`--check` 只查询（退出码 0=最新、1=落后） |
 | `init [目录]` | 新项目脚手架，生成知识四层 + AGENTS.md + 配置 |
@@ -44,7 +44,7 @@ pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版�
 | --- | --- | --- |
 | `decisionClasses` | 6 个内置类别 | `decisions/` 类别封闭集合 |
 | `taskStatuses` | 5 个内置状态 | `tasks/` 状态枚举 |
-| `workMode` | `{ plan: "on", confirmAmbiguous: true, fleet: "off", merge: "ask" }` | 每次会话行为开关：是否先出计划等确认、需求不明是否必须询问、是否优先派发子代理并行（舰队模式）、任务分支是否本地合流（`merge`：off/ask/auto）；用 `mode` 命令调整 |
+| `workMode` | `{ plan: "on", confirmAmbiguous: true, fleet: "off", merge: "ask", audience: "expert", engineering: "off" }` | 每次会话行为开关：纪律 `plan` / `confirmAmbiguous` / `fleet` / `merge`，加沟通语域 `audience`（expert/product/novice，决定措辞与解释深度）与工程化 `engineering`（on/off，强制逐项过工程化清单）；语义与耦合矩阵见 [docs/modes.md](https://github.com/yondren/yondren-psycho-frame/blob/main/docs/modes.md)；用 `mode` 命令调整 |
 | `budgets` | 无（不启用） | `{ 文件路径: 字数上限 }`，CJK 逐字计 1、拉丁/数字串计 1 词，超限门禁失败 |
 | `ignore` | 无 | 相对根的前缀列表，跳过门禁 |
 

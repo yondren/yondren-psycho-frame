@@ -16,7 +16,7 @@ Status: implemented
   `ask`），与 `plan`、`confirmAmbiguous`、`fleet` 并列：`auto` 在置 `DONE` 前把任务分支
   merge-forward 到父分支（默认 `main`，栈式逐层向上），`ask` 收尾先问，`off` 不合流；三者都
   不含推送。冲突、父分支 checkout 脏或分叉时停下写明原因，不静默跳过。
-- 语义唯一事实源在 [docs/development.md](../../../docs/development.md)，操作规格（触发、目标、步骤与
+- 语义唯一事实源在 [docs/modes.md](../../../docs/modes.md)，操作规格（触发、目标、步骤与
   失败语义）在新增的 [docs/cookbook/merge.md](../../../docs/cookbook/merge.md)；
   [cookbook/parallel-worktrees.md](../../../docs/cookbook/parallel-worktrees.md) 的合流节只留链接。
 - 完成定义写进 [tasks/README.md](../../../tasks/README.md) 规则 2：提交后合流，未合流须在任务卡与
