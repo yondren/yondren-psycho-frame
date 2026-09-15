@@ -1,7 +1,7 @@
 # 会话模式新增语域与工程化两条轴 执行报告
 
 - task_key: mode-axes
-- 状态: IN_PROGRESS（实现与验证完成，待合流）
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
@@ -79,8 +79,9 @@ node website/scripts/sync-content.mjs              # 生成 5 页，含新页 /g
 
 ## 6. 合流状态
 
-分支 `mode-axes`（worktree `.worktrees/mode-axes`）尚未合流，等用户确认后 merge-forward 到 `main`。
+已按 [merge.md](../docs/cookbook/merge.md) 以 merge 提交 `63805c2` 合流回 `main`；worktree
+`.worktrees/mode-axes` 已移除，分支 `mode-axes` 保留。
 
 ## 7. 还剩什么阻塞
 
-无。骨架维护模式任务在本次合流后开工——两任务同改模板、AGENTS.md 与 cookbook，串行避免冲突。
+无。骨架维护模式任务接着开工。
