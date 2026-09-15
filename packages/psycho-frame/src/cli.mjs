@@ -50,11 +50,13 @@ const USAGE = `psycho-frame ${version} — 见山处（Yondren）精神力骨架
                     --json 输出机器可读结果
   scope|change-scope --base <ref> [--head <ref>]
                     四层改动面报告（base 必须显式提供）
-  mode              显示当前工作模式（plan、confirmAmbiguous、fleet、merge）
+  mode              显示当前工作模式（plan、confirmAmbiguous、fleet、merge、audience、engineering）
   mode set <key>=<value> [<key>=<value>]
                     设置工作模式并写回配置（plan=on|off，confirmAmbiguous=true|false，
-                    fleet=on|off，merge=off|ask|auto）
-  mode reset        恢复默认工作模式（plan=on，confirmAmbiguous=true，fleet=off，merge=ask）
+                    fleet=on|off，merge=off|ask|auto，audience=expert|product|novice，
+                    engineering=on|off）
+  mode reset        恢复默认工作模式（plan=on，confirmAmbiguous=true，fleet=off，merge=ask，
+                    audience=expert，engineering=off）
   upgrade [目录] [--dry-run] [--exit-code]
                     骨架一键升级：模板优先，被覆盖的本地改动自动备份到
                     .psycho-frame-upgrade/；配置增量合并；README.md 保留本地；加 --dry-run
@@ -134,14 +136,18 @@ psycho-frame mode set <key>=<value> [<key>=<value>]
 psycho-frame mode reset
 
 查看/设置工作模式并写回 .psycho-frame.json：plan=on|off，confirmAmbiguous=true|false，
-fleet=on|off，merge=off|ask|auto；reset 恢复默认（plan=on，confirmAmbiguous=true，
-fleet=off，merge=ask）。
+fleet=on|off，merge=off|ask|auto，audience=expert|product|novice，engineering=on|off；
+reset 恢复默认（plan=on，confirmAmbiguous=true，fleet=off，merge=ask，audience=expert，
+engineering=off）。
 
 merge 只决定任务分支的本地合流（auto 合到父分支，默认 main），不含推送。
-语义真源见项目内 docs/development.md。
+语义与耦合矩阵见项目内 docs/modes.md：audience 决定措辞与解释深度，engineering=on 时在
+方案阶段逐项过工程化清单。
 
 示例:
   psycho-frame mode
+  psycho-frame mode set audience=product
+  psycho-frame mode set engineering=on
   psycho-frame mode set plan=off fleet=on
   psycho-frame mode set merge=auto
   psycho-frame mode reset

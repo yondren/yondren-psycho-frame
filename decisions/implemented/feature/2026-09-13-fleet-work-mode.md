@@ -14,7 +14,7 @@ Status: implemented
   与 `plan`、`confirmAmbiguous` 并列；默认关闭，老配置零迁移（缺省即补 `off`）。
 - `fleet=on` 的语义：批量、检索、整理、提取、分类等可独立切分的工作优先派发子代理并行，
   主线程保留架构决策与最终验收；`fleet=off` 不强制派发，派不派由收益是否超过协调成本决定。
-  语义唯一事实源在 docs/development.md，操作规格（派发包、收口、与 worktree 分层）在
+  语义唯一事实源在 [docs/modes.md](../../../docs/modes.md)，操作规格（派发包、收口、与 worktree 分层）在
   docs/cookbook/fleet-mode.md。
 - 取值、默认与校验收敛在 `packages/psycho-frame/src/work-mode.mjs`，verify 门禁沿用
   `validateWorkMode`；CLI 的 mode 解析、回显与 reset 从 `DEFAULT_WORK_MODE` 派生，新增开关

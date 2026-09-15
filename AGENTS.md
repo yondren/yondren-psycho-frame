@@ -10,9 +10,11 @@
 [docs/development.md](docs/development.md)，非平凡变更的计划走 [decisions/](decisions/README.md) 提案格式。
 
 ## 工作模式
-工作模式真源在 [.psycho-frame.json](.psycho-frame.json) 的 `workMode`（`plan`、`confirmAmbiguous`、`fleet`、`merge`）；
-语义与调整方式见 [docs/development.md](docs/development.md)。对话中可直接要求调整，Agent 用
-`psycho-frame mode set` 持久化；也可自行运行 `psycho-frame mode` 查看或 `mode reset` 恢复默认。
+工作模式真源在 [.psycho-frame.json](.psycho-frame.json) 的 `workMode`（`plan`、`confirmAmbiguous`、
+`fleet`、`merge`、`audience`、`engineering`），语义与调整方式见 [docs/modes.md](docs/modes.md)。
+开工前先 `psycho-frame mode` 读一次：`audience` 决定措辞与解释深度，`engineering=on` 时方案阶段
+逐项过工程化清单。对话中可直接要求调整，Agent 用 `psycho-frame mode set` 持久化，`mode reset`
+恢复默认。
 
 ## 文档门禁
 - 每个事实只有一个家（one home per fact），其余位置只放相对链接。

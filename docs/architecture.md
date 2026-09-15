@@ -26,8 +26,8 @@
 
 - 门禁语义在 `packages/psycho-frame/src/verify-docs.mjs`；封闭集合与预算走
   `.psycho-frame.json`，缺省用包内置值。
-- 工作模式（plan / confirmAmbiguous / fleet / merge）的取值、读写与默认收敛在
-  `packages/psycho-frame/src/work-mode.mjs`，verify 门禁与 mode CLI 共用。
+- 工作模式的取值、读写与默认收敛在 `packages/psycho-frame/src/work-mode.mjs`（六把开关同表），
+  verify 门禁与 mode CLI 共用；语义见 [modes.md](modes.md)。
 - 结构漂移检查在 `packages/psycho-frame/src/init.mjs`：doctor 查必需文件、配置与脚本，并列出
   领先集成分支（main / master）的本地分支，供任务分支合流收束时对照。
 - 骨架升级语义在 `packages/psycho-frame/src/upgrade.mjs`：模板优先 + 本地改动备份、
