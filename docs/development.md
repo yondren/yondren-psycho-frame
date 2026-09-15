@@ -34,8 +34,10 @@
 ## 门禁分工
 
 本地：`pnpm verify:docs` + `pnpm test` + 改动面匹配的最窄验证；全量矩阵归 CI。
-漂移：`pnpm run doctor`；骨架升级用 `psycho-frame upgrade`（模板优先、本地改动自动备份、配置增量
-合并），骨架偏差由 init/adopt/upgrade 测试看护（[packages/psycho-frame/test/](../packages/psycho-frame/test/)）。
+漂移：`pnpm run doctor`（含骨架漂移提示）；骨架升级用 `psycho-frame upgrade`（模板优先、本地改动
+自动备份、配置增量合并），在根 checkout 原地进行、不建 worktree
+（[cookbook/skeleton-upgrade.md](cookbook/skeleton-upgrade.md)），骨架偏差由 init/adopt/upgrade 测试
+看护（[packages/psycho-frame/test/](../packages/psycho-frame/test/)）。
 CI：门禁、doctor、测试在 Node 20/22 上跑，PR 与 main 都触发
 （[.github/workflows/ci.yml](../.github/workflows/ci.yml)）。
 

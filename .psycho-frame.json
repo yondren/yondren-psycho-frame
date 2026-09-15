@@ -34,6 +34,7 @@
     "docs/cookbook/README.md": 120,
     "docs/cookbook/parallel-worktrees.md": 400,
     "docs/cookbook/merge.md": 200,
+    "docs/cookbook/skeleton-upgrade.md": 400,
     "docs/cookbook/fleet-mode.md": 400,
     "docs/development.md": 780,
     "docs/modes.md": 850,

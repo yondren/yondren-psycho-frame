@@ -106,6 +106,13 @@ test('upgrade CLI：--dry-run 默认退出码 0，--exit-code 时为 1', () => {
   assert.equal(strict.status, 1)
 })
 
+test('upgrade help：说明 linked worktree 与框架源码仓库中止', () => {
+  const r = runCli(fixtureRepo(), ['help', 'upgrade'])
+  assert.equal(r.status, 0)
+  assert.match(r.stdout, /linked worktree 中止/)
+  assert.match(r.stdout, /框架源码仓库/)
+})
+
 test('upgrade CLI：未知参数与多目录都退出码 2', () => {
   const cwd = tempDir()
   assert.equal(runCli(cwd, ['upgrade', '--bogus']).status, 2)

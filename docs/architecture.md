@@ -28,10 +28,11 @@
   `.psycho-frame.json`，缺省用包内置值。
 - 工作模式的取值、读写与默认收敛在 `packages/psycho-frame/src/work-mode.mjs`（六把开关同表），
   verify 门禁与 mode CLI 共用；语义见 [modes.md](modes.md)。
-- 结构漂移检查在 `packages/psycho-frame/src/init.mjs`：doctor 查必需文件、配置与脚本，并列出
-  领先集成分支（main / master）的本地分支，供任务分支合流收束时对照。
-- 骨架升级语义在 `packages/psycho-frame/src/upgrade.mjs`：模板优先 + 本地改动备份、
-  配置增量合并、--dry-run 预览、框架源码仓库自识别中止。
+- 结构漂移检查在 `packages/psycho-frame/src/init.mjs`：doctor 查必需文件、配置、脚本与骨架漂移
+  （`skeletonDrift` 对比包内模板），并列出领先集成分支（main / master）的本地分支。
+- 骨架升级语义在 `packages/psycho-frame/src/upgrade.mjs`：模板优先 + 本地改动备份、配置增量合并、
+  `--dry-run` 预览；框架源码仓库与 linked worktree 两处入口中止
+  （[cookbook](cookbook/skeleton-upgrade.md)）。
 - CLI 自升级与自动版本检查在 `packages/psycho-frame/src/self-update.mjs`：`self-upgrade`
   命令、registry 查询、24h 节流缓存与交互终端提示。
 - 两包锁步发布在 [scripts/release.mjs](../scripts/release.mjs)：bump 两包与模板 pin、预检、

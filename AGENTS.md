@@ -26,6 +26,8 @@
 - 任务状态真源在 tasks/（Git 内），开工前先登记任务并置 `IN_PROGRESS`。
 - 每个任务一个 git worktree，并行任务永不共享 checkout；流程见
   [docs/cookbook/parallel-worktrees.md](docs/cookbook/parallel-worktrees.md)。
+- 骨架升级例外：`pnpm run doctor` 或 `psycho-frame upgrade --dry-run --exit-code` 报漂移时提出升级，
+  升级在根 checkout 原地进行、不建 worktree（[cookbook](docs/cookbook/skeleton-upgrade.md)）。
 - 提交信息必须包含 task_key；禁止 raw `--force` 推送，重写已推历史必须租约保护。
 - 推送：`git push origin main`（GitHub 主远端）+ `git push codeup main:mirror`（codeup 备份）；
   远端拓扑与历史策略见

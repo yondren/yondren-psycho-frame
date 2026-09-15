@@ -28,11 +28,11 @@ pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版�
 | `verify [--json]` | 文档门禁：链接/锚点、决策结构与格式、任务头字段、字数预算、工作模式取值；`--json` 输出 `{ formatVersion, ok, count, errors }` |
 | `scope --base <ref>` | 四层改动面报告（committed/staged/unstaged/untracked，JSON） |
 | `mode` | 查看当前工作模式（六把开关）；`mode set <key>=<value>` 设置并写回配置，`mode reset` 恢复默认 |
-| `upgrade [目录]` | 骨架一键升级：模板优先，被覆盖的本地改动备份到 `.psycho-frame-upgrade/`，配置增量合并（对象键下探一层补缺），README.md 保留本地；`--dry-run` 只预览，`--exit-code` 让预览有变更时退出码 1；无目录参数时定位 git 仓库根，非骨架项目与框架源码仓库中止 |
+| `upgrade [目录]` | 骨架一键升级：模板优先，被覆盖的本地改动备份到 `.psycho-frame-upgrade/`，配置增量合并（对象键下探一层补缺），README.md 保留本地；`--dry-run` 只预览，`--exit-code` 让预览有变更时退出码 1；无目录参数时定位 git 仓库根；非骨架项目、框架源码仓库与 linked worktree 中止（升级改的是全仓库共享的根文件，须在根 checkout 原地执行，见 [骨架升级](https://github.com/yondren/yondren-psycho-frame/blob/main/docs/cookbook/skeleton-upgrade.md)） |
 | `self-upgrade` | CLI 自身升级：npm 全局安装自动 `npm install -g` 到最新版，其余安装方式打印对应指引；`--check` 只查询（退出码 0=最新、1=落后） |
 | `init [目录]` | 新项目脚手架，生成知识四层 + AGENTS.md + 配置 |
 | `adopt [目录]` | 旧项目采纳，add-only：已存在的文件跳过并报告 |
-| `doctor [目录]` | 结构漂移检查：必需文件、配置、脚本，以及领先集成分支的本地分支（未合流的任务分支） |
+| `doctor [目录]` | 结构漂移检查：必需文件、配置、脚本、骨架漂移（与模板不一致的骨架文件数与缺失数），以及领先集成分支的本地分支（未合流的任务分支） |
 | `help [命令]` | 无参数打印全量用法；带命令名打印该命令专属帮助 |
 | `version` | 输出版本号（等价 `--version` / `-v`） |
 

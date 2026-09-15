@@ -10,8 +10,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
+import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { walkFiles, sanitizeName } from './init.mjs'
+import { walkFiles, sanitizeName, isFrameworkRepo } from './init.mjs'
 
 const templateRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'template')
 
@@ -92,13 +93,20 @@ function mergeScripts(localText, templateText) {
   return { text: JSON.stringify(local, null, 2) + '\n', added }
 }
 
-/** 框架源码仓库标识：根 package 名或包内模板目录。模板升级会用极简模板覆盖其富文档。 */
-function isFrameworkSource(root) {
+/** linked worktree 标识：git-dir 与 git-common-dir 不同即非根 checkout；非 git 目录返回 false。 */
+function isLinkedWorktree(root) {
   try {
-    const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
-    if (pkg.name === 'yondren-psycho-frame-workspace') return true
-  } catch {}
-  return fs.existsSync(path.join(root, 'packages', 'psycho-frame', 'template', 'package.json'))
+    const [gitDir, commonDir] = execFileSync(
+      'git',
+      ['-C', root, 'rev-parse', '--git-dir', '--git-common-dir'],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
+    ).trim().split('\n')
+    if (gitDir === undefined || commonDir === undefined) return false
+    const abs = p => fs.realpathSync(path.resolve(root, p))
+    return abs(gitDir) !== abs(commonDir)
+  } catch {
+    return false
+  }
 }
 
 export function run({ target = '.', dryRun = false, cwd = process.cwd() }) {
@@ -111,8 +119,12 @@ export function run({ target = '.', dryRun = false, cwd = process.cwd() }) {
     console.error(`upgrade 中止：目标不是目录 ${root}`)
     return { changed: 0, errors: true }
   }
-  if (isFrameworkSource(root)) {
+  if (isFrameworkRepo(root)) {
     console.error(`upgrade 中止：${root} 是框架源码仓库（模板源头），模板升级会覆盖其富文档；请在消费方项目内运行`)
+    return { changed: 0, errors: true }
+  }
+  if (isLinkedWorktree(root)) {
+    console.error(`upgrade 中止：${root} 是 linked worktree；骨架升级改的是全仓库共享的根文件，请在根 checkout 原地运行（git worktree list 查看根路径）`)
     return { changed: 0, errors: true }
   }
   const markers = ['AGENTS.md', '.psycho-frame.json', 'package.json', 'docs']

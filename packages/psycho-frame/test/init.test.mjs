@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
-import { scaffold, doctor, sanitizeName, walkFiles } from '../src/init.mjs'
+import { scaffold, doctor, sanitizeName, walkFiles, skeletonDrift } from '../src/init.mjs'
 import { tempDir, write, noop } from './helpers.mjs'
 
 /** 在 root 建一个含 main 与一个领先分支的 git 仓库，用于 doctor 的分支可见性。 */
@@ -119,6 +119,26 @@ test('doctor：配置 JSON 损坏时失败', () => {
   const r = doctor({ cwd, target: 'proj', stdout: noop, stderr: noop })
   assert.equal(r.exitCode, 1)
   assert.ok(r.issues.some(i => i.includes('JSON 解析失败')))
+})
+
+test('doctor：骨架漂移给出升级提示，框架源码仓库不比较', () => {
+  const cwd = tempDir()
+  scaffold({ cwd, target: 'proj', mode: 'init', stdout: noop, stderr: noop })
+  const clean = doctor({ cwd, target: 'proj', stdout: noop, stderr: noop })
+  assert.equal(clean.notes.some(n => n.includes('骨架漂移')), false)
+
+  write(cwd, 'proj/AGENTS.md', '# 本地改过\n')
+  fs.rmSync(path.join(cwd, 'proj/docs/architecture.md'))
+  const drifted = doctor({ cwd, target: 'proj', stdout: noop, stderr: noop })
+  const note = drifted.notes.find(n => n.includes('骨架漂移'))
+  assert.ok(note !== undefined, '漂移应给出 note')
+  assert.match(note, /2 个骨架文件与模板不一致（缺失 1 个）/)
+  assert.match(note, /upgrade --dry-run/)
+
+  const framework = tempDir()
+  write(framework, 'packages/psycho-frame/template/package.json', '{}')
+  write(framework, 'AGENTS.md', '# 模板源头自身的富文档\n')
+  assert.equal(skeletonDrift(framework), null)
 })
 
 test('模板门禁入口：只用 pnpm，不再宣称 npm/yarn 亦可', () => {
