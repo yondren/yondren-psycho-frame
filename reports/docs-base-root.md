@@ -1,7 +1,7 @@
 # 官网基路径切根路径 执行报告
 
 - task_key: docs-base-root
-- 状态: IN_PROGRESS
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
@@ -62,9 +62,12 @@ grep -rhoE '.{18}yondren-psycho-frame/' website/.vitepress/dist | sort -u
 
 ## 6. 合流状态
 
-（合流后回填）
+- 已合流到 `main`：`git merge --no-ff docs-base-root -m "merge: 官网基路径切根路径 [docs-base-root]"`
+  （merge commit `c9841e9`）；worktree `.worktrees/docs-base-root` 已删除。
+- 推送：`origin main` 与 `codeup main:mirror`（推送前核对远端 OID 未变）。
 
 ## 7. 还剩什么阻塞
 
-- 推送后需等 `docs.yml` 部署完成，并在 Cloudflare 侧 Purge Everything：旧 HTML 有 1 小时边缘
-  TTL，`/yondren-psycho-frame/...` 的 404 也已被边缘缓存。
+- 无阻塞。收尾复验（推送后）：等 `docs.yml` 部署完成，在 Cloudflare 侧 Purge Everything（旧 HTML
+  有 1 小时边缘 TTL，`/yondren-psycho-frame/...` 的 404 也已被边缘缓存），再确认首页绝对路径为
+  `/assets/...`、站内导航 200、`cf-cache-status` MISS→HIT。

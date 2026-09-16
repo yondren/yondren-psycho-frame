@@ -1,7 +1,7 @@
 # 官网基路径切根路径（自定义域名规范地址）
 
 - task_key: docs-base-root
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-16
 - updated: 2026-09-16
 - report: [reports/docs-base-root.md](../reports/docs-base-root.md)
@@ -21,4 +21,6 @@ HTTPS）属维护者本地操作，步骤留存在 `.local/deploy/`；不改 syn
 ## 进度
 
 - [IN_PROGRESS] 2026-09-16 登记任务；`DOCS_BASE` 切 `/`，VitePress 配置注释与官网决策记录的基址
-  事实同步；产物检查确认旧基路径引用为 0，门禁与官网构建通过。待合流与推送后置 `DONE`。
+  事实同步；产物检查确认旧基路径引用为 0，门禁与官网构建通过。
+- [DONE] 2026-09-16 合流到 `main`（merge commit `c9841e9`），worktree 已删除；推送两个远端后由
+  `docs.yml` 重新部署，线上以 Cloudflare purge 后的复验为准。
