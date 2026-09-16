@@ -61,7 +61,7 @@ const USAGE = `psycho-frame ${version} — 见山处（Yondren）精神力骨架
                     骨架一键升级：模板优先，被覆盖的本地改动自动备份到
                     .psycho-frame-upgrade/；配置增量合并；README.md 保留本地；加 --dry-run
                     只预览，--exit-code 让预览有变更时退出码为 1。无目录参数时定位到
-                    git 仓库根，非骨架项目与框架源码仓库中止
+                    git 仓库根，非骨架项目、框架源码仓库与 linked worktree 中止
   self-upgrade       CLI 自身升级：查询 npm registry，npm 全局安装自动升级到最新版，
                     其余安装方式打印对应指引；加 --check 只查询（退出码 0=最新、1=落后）
   init [目录]       新项目脚手架（目标目录须为空，默认 .）
@@ -158,7 +158,8 @@ merge 只决定任务分支的本地合流（auto 合到父分支，默认 main�
 
 骨架一键升级：模板优先，被覆盖的本地改动自动备份到 .psycho-frame-upgrade/；
 配置增量合并；README.md 保留本地。无目录参数时定位到 git 仓库根，非骨架项目
-中止；框架源码仓库（模板源头）中止；--dry-run 只预览，--exit-code 让预览有变更时
+中止；框架源码仓库（模板源头）中止；linked worktree 中止（升级改的是全仓库共享的
+根文件，须在根 checkout 原地执行）；--dry-run 只预览，--exit-code 让预览有变更时
 退出码为 1。
 
 示例:

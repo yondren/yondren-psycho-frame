@@ -43,6 +43,38 @@ export function walkFiles(dir, base = dir) {
   return out
 }
 
+/** 框架源码仓库标识：根 package 名或包内模板目录。它既是模板源头，又按骨架组织自身文档。 */
+export function isFrameworkRepo(root) {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
+    if (pkg.name === 'yondren-psycho-frame-workspace') return true
+  } catch { /* 无 package.json 或 JSON 损坏：改看路径特征 */ }
+  return fs.existsSync(path.join(root, 'packages', 'psycho-frame', 'template', 'package.json'))
+}
+
+// upgrade 会整文件覆盖模板自有文件；README.md 属用户内容，其余三类配置走增量合并，均不计漂移。
+const MERGED_OR_LOCAL = new Set(['README.md', '.psycho-frame.json', 'package.json', '.gitignore'])
+
+/** 骨架文件与包内模板的差异：{ drift, missing } 文件名清单；框架源码仓库返回 null。 */
+export function skeletonDrift(root) {
+  if (isFrameworkRepo(root)) return null
+  const projectName = sanitizeName(path.basename(root))
+  const drift = []
+  const missing = []
+  for (const rel of walkFiles(templateRoot).sort()) {
+    const name = RENAMES[rel] ?? rel
+    if (MERGED_OR_LOCAL.has(name)) continue
+    const dest = path.join(root, name)
+    if (!fs.existsSync(dest)) {
+      missing.push(name)
+      continue
+    }
+    const expected = fs.readFileSync(path.join(templateRoot, rel), 'utf8').replaceAll('{{PROJECT_NAME}}', projectName)
+    if (fs.readFileSync(dest, 'utf8') !== expected) drift.push(name)
+  }
+  return { drift, missing }
+}
+
 export function scaffold({ target = '.', mode, cwd = process.cwd(), stdout = console.log, stderr = console.error }) {
   const destRoot = path.resolve(cwd, target)
   if (!fs.existsSync(destRoot)) fs.mkdirSync(destRoot, { recursive: true })
@@ -140,6 +172,12 @@ export function doctor({ target = '.', cwd = process.cwd(), stdout = console.log
 
   if (missing.length > 0) {
     issues.push(`缺少必需文件：${missing.join('、')}（用 psycho-frame adopt 补齐，或 psycho-frame upgrade 一键同步）`)
+  }
+  const drift = skeletonDrift(root)
+  if (drift !== null && drift.drift.length + drift.missing.length > 0) {
+    notes.push(
+      `骨架漂移：${drift.drift.length + drift.missing.length} 个骨架文件与模板不一致（缺失 ${drift.missing.length} 个）；psycho-frame upgrade --dry-run 预览，psycho-frame upgrade 同步（被覆盖的本地改动会备份）`,
+    )
   }
   const configPath = path.join(root, '.psycho-frame.json')
   if (fs.existsSync(configPath)) {

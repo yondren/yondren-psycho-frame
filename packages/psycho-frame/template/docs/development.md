@@ -47,5 +47,6 @@
 ## 门禁分工
 
 本地：`pnpm verify:docs` + 改动面匹配的最窄验证；全量矩阵归 CI。
-结构漂移：`pnpm run doctor`；旧项目补齐用 `psycho-frame adopt .`（只增不改）；骨架文件随模板
-升级用 `psycho-frame upgrade`（模板优先、被覆盖的本地改动自动备份、配置增量合并）。
+结构漂移：`pnpm run doctor`（含骨架漂移提示）；旧项目补齐用 `psycho-frame adopt .`（只增不改）；
+骨架文件随模板升级用 `psycho-frame upgrade`（模板优先、被覆盖的本地改动自动备份、配置增量合并），
+在根 checkout 原地进行、不建 worktree（[cookbook/skeleton-upgrade.md](cookbook/skeleton-upgrade.md)）。

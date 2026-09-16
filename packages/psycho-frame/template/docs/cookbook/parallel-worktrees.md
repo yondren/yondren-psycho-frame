@@ -3,6 +3,9 @@
 铁律：一个任务一个 worktree，并行任务永不共享 checkout。合并采用 merge-forward；
 重写已推历史必须租约保护；禁止 raw `--force`。
 
+例外：骨架升级改的是全仓库共享的根文件，在根 checkout 原地进行、不建 worktree
+（[skeleton-upgrade.md](skeleton-upgrade.md)）。
+
 worktree 布局：嵌套 `.worktrees/<task_key>`。
 
 ## 1. 为任务创建 worktree

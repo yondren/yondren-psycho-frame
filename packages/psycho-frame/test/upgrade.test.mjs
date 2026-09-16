@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
+import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { run } from '../src/upgrade.mjs'
 import { scaffold } from '../src/init.mjs'
@@ -146,4 +147,30 @@ test('upgrade：配置损坏时跳过合并并报错，不写坏文件', () => {
   const r = run({ cwd, target: 'proj' })
   assert.equal(r.errors, true)
   assert.equal(fs.readFileSync(path.join(root, '.psycho-frame.json'), 'utf8'), '{ nope')
+})
+
+test('upgrade：linked worktree 内中止，根 checkout 可升级', () => {
+  const cwd = tempDir()
+  const root = path.join(cwd, 'repo')
+  scaffold({ cwd, target: 'repo', mode: 'init', stdout: noop, stderr: noop })
+  const git = (...args) => execFileSync('git', ['-C', root, ...args], { stdio: ['ignore', 'pipe', 'ignore'] })
+  git('init', '-q')
+  git('config', 'user.email', 'test@example.com')
+  git('config', 'user.name', 'test')
+  git('add', '-A')
+  git('commit', '-q', '-m', 'init')
+  const linked = path.join(cwd, 'linked')
+  git('worktree', 'add', linked, '-b', 'task')
+
+  write(root, 'AGENTS.md', '# 本地改过\n')
+  const before = fs.readFileSync(path.join(linked, 'AGENTS.md'), 'utf8')
+  const inLinked = run({ cwd, target: 'linked' })
+  assert.equal(inLinked.errors, true)
+  assert.equal(inLinked.changed, 0)
+  assert.equal(fs.existsSync(path.join(linked, '.psycho-frame-upgrade')), false)
+  assert.equal(fs.readFileSync(path.join(linked, 'AGENTS.md'), 'utf8'), before)
+
+  const inRoot = run({ cwd, target: 'repo', dryRun: true })
+  assert.equal(inRoot.errors, false)
+  assert.ok(inRoot.changed > 0)
 })
