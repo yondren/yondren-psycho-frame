@@ -54,3 +54,6 @@ GitHub Pages 与仓库同源、零密钥，内容站已够用。
 - GitHub org `yondren` / 仓库 `yondren-psycho-frame`；官网链接与 workflow 使用该地址
   （repoBase 在 sync 脚本单点定义）。
 - 新增权威文档时须同步 MAP，否则官网不展示——作为新文档的发布步骤之一。
+- 规范地址是自定义域名 `https://psycho-frame.yondren.com/`（GitHub Pages 绑定该域名后，
+  项目页地址 301 到它）；Pages 在自定义域名下按根路径供给产物，[docs.yml](../../../.github/workflows/docs.yml)
+  因此固定注入 `DOCS_BASE=/`，VitePress 的 `base` 与之同值。

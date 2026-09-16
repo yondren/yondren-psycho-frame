@@ -1,8 +1,8 @@
 import { defineConfig } from 'vitepress'
 import { sidebarGroups } from '../scripts/content-map.mjs'
 
-// 部署到 GitHub Pages 项目页（https://<user>.github.io/yondren-psycho-frame/）时，
-// 由 workflow 注入 DOCS_BASE=/yondren-psycho-frame/；自定义域名时保持根路径。
+// 规范地址是自定义域名 https://psycho-frame.yondren.com/（GitHub Pages 在该域名下按根路径
+// 发布），workflow 注入 DOCS_BASE=/；本地构建不设该变量，取同一默认值。
 const base = process.env.DOCS_BASE ?? '/'
 
 export default defineConfig({
