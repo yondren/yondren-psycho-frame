@@ -1,7 +1,7 @@
 # 骨架维护模式 执行报告
 
 - task_key: skeleton-maintenance
-- 状态: IN_PROGRESS（实现与验证完成，待合流）
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
@@ -77,9 +77,9 @@ docs/cookbook/README.md、docs/cookbook/parallel-worktrees.md、docs/cookbook/sk
 
 ## 6. 合流状态
 
-分支 `skeleton-maintenance`（worktree `.worktrees/skeleton-maintenance`）尚未合流，等用户确认后
-merge-forward 到 `main`。
+已按 [merge.md](../docs/cookbook/merge.md) 以 merge 提交 `773a5ec` 合流回 `main`；worktree
+`.worktrees/skeleton-maintenance` 已移除，分支 `skeleton-maintenance` 保留。
 
 ## 7. 还剩什么阻塞
 
-无。合流后本次两份提案（语域/工程化两条轴、骨架维护模式）全部落地。
+无。本次两份提案（语域/工程化两条轴、骨架维护模式）均已落地并合流。

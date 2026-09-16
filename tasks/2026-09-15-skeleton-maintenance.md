@@ -1,7 +1,7 @@
 # 骨架维护模式：升级在根 checkout 原地进行
 
 - task_key: skeleton-maintenance
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-15
 - updated: 2026-09-15
 - report: [reports/skeleton-maintenance.md](../reports/skeleton-maintenance.md)
@@ -29,3 +29,9 @@
 
 - [IN_PROGRESS] 2026-09-15 开工：worktree `.worktrees/skeleton-maintenance`，分支
   `skeleton-maintenance`，base `main`。
+- [DONE] 2026-09-15 linked worktree 入口守卫、doctor 骨架漂移 note、`isFrameworkRepo` 单一实现、
+  cookbook 页与铁律例外、AGENTS.md 常驻一行、CLI 文案与两处预算落地。
+- [DONE] 2026-09-15 验证：`pnpm verify:docs` 通过、`pnpm test` 106 项全绿、真实演练（worktree 内
+  upgrade 被拦下、doctor 在框架源码仓库不比较模板），证据见
+  [reports/skeleton-maintenance.md](../reports/skeleton-maintenance.md)。
+- [DONE] 2026-09-15 以 merge 提交 `773a5ec` 合流回 `main`，worktree 已移除。
