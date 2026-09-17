@@ -49,3 +49,9 @@ git push codeup main:mirror
 ## 5. 留痕
 
 任务置 `DONE`、写 `reports/<task_key>.md`；README 与官网用 `@latest`，无需改动。
+
+## 6. 发布失败
+
+`PUT … - Not found`（E404）表示凭据未被接受：registry 对未认证的 PUT 一律回 404，与包是否存在
+无关。先 `npm whoami` 确认身份，401 时 `npm login` 重新登录，或换用对两个包有 read/write 权限的
+granular access token。凭据修好前不要重跑第二条，避免只发出一半。
