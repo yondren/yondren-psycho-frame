@@ -1,7 +1,7 @@
 # CLI 帮助参数与目录参数守卫 执行报告
 
 - task_key: cli-help-arg-guard
-- 状态: IN_PROGRESS（待合流）
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
@@ -40,4 +40,5 @@
 
 ## 6. 还剩什么阻塞
 
-无。分支 `cli-arg-guard` 待按 `workMode.merge=ask` 合流（合流后才置任务 `DONE`）。
+无。分支 `cli-arg-guard` 已按 `workMode.merge=ask` 合流到 `main`（`37e61e6`），合流后复跑门禁与
+109 项测试通过；本修复随下一个版本进入发布包。
