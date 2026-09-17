@@ -36,6 +36,7 @@
     "docs/cookbook/merge.md": 200,
     "docs/cookbook/skeleton-upgrade.md": 400,
     "docs/cookbook/fleet-mode.md": 400,
+    "docs/cookbook/release.md": 400,
     "docs/development.md": 780,
     "docs/modes.md": 850,
     "docs/postmortem/README.md": 120,

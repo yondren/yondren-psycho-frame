@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // release.mjs：yondren-psycho-frame 两包锁步发布脚本（零依赖，Node ≥ 18.20）。
 // 用法：pnpm release <major|minor|patch|premajor|preminor|prepatch|prerelease|X.Y.Z>
-//              [--preview] [--publish] [--push]
+//              [--prepare] [--preview] [--publish] [--push] [--task-key=<key>]
 // 步骤：预检 → pnpm install → bump 两包 + 模板 pin → verify/doctor → pack 预检
-//      → commit + tag →（--publish）按序双发 →（--push）推 origin main + tag。
-// 默认只做本地 bump/commit/tag，不发布不推送；--preview 完全只读。
+//      → commit + tag →（--publish）按序双发 →（--push）推 origin main + tag 与 codeup 镜像。
+// 默认（或 --prepare）只做本地 bump/commit/tag，结尾打印发布交接命令；--preview 完全只读。
+// --prepare 与 --publish/--push 互斥，供 pnpm release:prepare 入口使用。
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -19,14 +20,17 @@ const TEMPLATE_PKG = path.join('packages', 'psycho-frame', 'template', 'package.
 const BUMP_TYPES = ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease']
 const SEMVER_RE = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/
 
-const USAGE = `用法: pnpm release <bump> [--preview] [--publish] [--push]
+const USAGE = `用法: pnpm release <bump> [--prepare] [--preview] [--publish] [--push] [--task-key=<key>]
 
   bump      major | minor | patch | premajor | preminor | prepatch | prerelease | X.Y.Z
+  --prepare 只准备：bump/门禁/pack 预检/commit/tag，结尾打印发布命令（与 --publish/--push 互斥）
   --preview 只读预览：打印将写入的版本与步骤，不落盘不执行
   --publish 实际 npm 发布两包（默认跳过，仅本地 bump/commit/tag）
-  --push    推 origin main 与 tag（默认跳过；推送前校验远程 OID 未变）
+  --push    推 origin main 与 tag、codeup 镜像（默认跳过；推送前校验 origin OID 未变）
+  --task-key=<key> release commit 的 task_key，须已在 tasks/ 登记（默认 publish-release-script）
 
-默认不发布不推送；真实发布用: pnpm release patch --publish --push`
+默认不发布不推送；只准备用: pnpm release:prepare patch --task-key=<key>
+真实发布用: pnpm release patch --publish --push`
 
 // ---------- 小工具 ----------
 
@@ -122,17 +126,27 @@ function templatePin(next) {
 // ---------- 参数 ----------
 
 const args = process.argv.slice(2)
-const flags = new Set(args.filter(a => a.startsWith('--')))
+const flags = new Set(args.filter(a => a.startsWith('--') && !a.startsWith('--task-key=')))
 const positional = args.filter(a => !a.startsWith('--'))
 if (flags.has('--help') || flags.has('-h')) { console.log(USAGE); process.exit(0) }
 for (const f of flags) {
-  if (!['--preview', '--publish', '--push'].includes(f)) fail(`未知选项 ${f}（见 --help）`)
+  if (!['--prepare', '--preview', '--publish', '--push'].includes(f)) fail(`未知选项 ${f}（见 --help）`)
+}
+const taskKeyArgs = args.filter(a => a.startsWith('--task-key='))
+if (taskKeyArgs.length > 1) fail('--task-key= 只能给出一次')
+const taskKey = taskKeyArgs[0] ? taskKeyArgs[0].slice('--task-key='.length) : 'publish-release-script'
+if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(taskKey)) {
+  fail(`task_key "${taskKey}" 非法：须全小写连字符（见 tasks/README.md）`)
 }
 if (positional.length !== 1) fail(`需要一个 bump 参数（见 --help）\n\n${USAGE}`)
 const bumpArg = positional[0]
+const prepare = flags.has('--prepare')
 const preview = flags.has('--preview')
 const doPublish = flags.has('--publish')
 const doPush = flags.has('--push')
+if (prepare && (doPublish || doPush)) {
+  fail('--prepare 与 --publish/--push 互斥：只准备入口不发布不推送')
+}
 
 // ---------- 仓库定位与预检 ----------
 
@@ -143,6 +157,12 @@ const scriptPkg = readJson('package.json')
 if (scriptPkg.name !== 'yondren-psycho-frame-workspace') {
   fail(`git 根 ${root} 不是本仓库（root package 名为 ${scriptPkg.name}）`)
 }
+
+const taskDir = path.join(root, 'tasks')
+const taskCard = fs.existsSync(taskDir)
+  ? fs.readdirSync(taskDir).find(f => f.endsWith(`-${taskKey}.md`))
+  : undefined
+if (!taskCard) fail(`tasks/ 下没有 task_key 为 ${taskKey} 的任务卡；先登记任务再发布（见 tasks/README.md）`)
 
 const status = gitMaybe(['status', '--porcelain']).stdout.trim()
 if (status !== '') fail('工作区不干净，先提交或还原再发布')
@@ -249,16 +269,32 @@ console.log(`release: pack 预检通过（${CORE} tarball 模板 pin ${innerPin}
 
 const bumped = [CORE_PKG, SHIM_PKG, TEMPLATE_PKG]
 git(['add', ...bumped])
-git(['commit', '-m', `chore(release): 两包升 ${next}、模板 devDep 同步 [publish-release-script]`])
+git(['commit', '-m', `chore(release): 两包升 ${next}、模板 devDep 同步 [${taskKey}]`])
 git(['tag', '-a', `v${next}`, '-m', `${CORE} v${next}`])
 console.log(`release: 已提交并打 tag v${next}`)
 
 // ---------- 发布（可选） ----------
 
+// 发布交接：命令行不带日志前缀，便于整块复制到终端执行。
+function publishHandoff() {
+  console.log(`
+release: ── 发布前准备完成：${CORE} 与 ${SHIM} 已 bump 到 ${next}，commit + tag v${next} 就绪（未发布、未推送）──
+release: 以下命令请在你的终端按序执行（需要 npm 凭据与 2FA；版本一旦发布不可覆盖）：
+
+  pnpm publish --filter ${CORE} --no-git-checks
+  pnpm publish --filter ${SHIM} --no-git-checks
+  npm view ${CORE} version dist-tags && npm view ${SHIM} version dist-tags
+  git push origin main
+  git push origin v${next}
+  git push codeup main:mirror
+
+release: 核对点：两包 dist-tags.latest 均为 ${next} 之后才推送。
+release: 发布前回退（本地未推送）：git tag -d v${next} && git reset --hard <准备前 OID>`)
+}
+
 if (!doPublish) {
-  console.log('release: 未加 --publish，跳过 npm 发布。')
-  console.log(`release: 发布命令：pnpm publish --filter ${CORE} --no-git-checks && pnpm publish --filter ${SHIM} --no-git-checks`)
-  if (doPush) console.log('release: 注意：--publish 未给出时 --push 也不执行')
+  if (doPush) console.log('release: 注意：未加 --publish，--push 不执行。')
+  publishHandoff()
   process.exit(0)
 }
 
@@ -271,8 +307,10 @@ for (const name of [CORE, SHIM]) {
 // ---------- 推送（可选） ----------
 
 if (!doPush) {
-  console.log('release: 未加 --push，跳过推送 origin。')
-  console.log(`release: 推送命令：git push origin main v${next}`)
+  console.log(`release: 已发布 ${next}，未加 --push，跳过推送。推送命令：
+  git push origin main
+  git push origin v${next}
+  git push codeup main:mirror`)
   process.exit(0)
 }
 
@@ -282,4 +320,10 @@ if (originOid) {
 }
 git(['push', 'origin', 'main'])
 git(['push', 'origin', `v${next}`])
+const codeup = gitMaybe(['push', 'codeup', 'main:mirror'])
+if (codeup.status === 0) {
+  console.log('release: 已推送 codeup main:mirror')
+} else {
+  console.warn('release: 警告：codeup 镜像推送失败（origin 已推送成功）。手动补推：git push codeup main:mirror')
+}
 console.log(`release: 已推送 origin main 与 v${next}，发布完成。`)

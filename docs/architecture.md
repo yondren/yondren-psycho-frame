@@ -36,7 +36,8 @@
 - CLI 自升级与自动版本检查在 `packages/psycho-frame/src/self-update.mjs`：`self-upgrade`
   命令、registry 查询、24h 节流缓存与交互终端提示。
 - 两包锁步发布在 [scripts/release.mjs](../scripts/release.mjs)：bump 两包与模板 pin、预检、
-  pack 检查、commit/tag、按序双发与推送（默认不发布不推送）。
+  pack 检查、commit/tag、按序双发与推送；`pnpm release:prepare` 只准备并打印交接命令
+  （[cookbook](cookbook/release.md)）。
 - 模板在 `packages/psycho-frame/template/`；新增可选模块同步 docs/cookbook/。
 - 官网页面映射在 `website/scripts/content-map.mjs`（sync 脚本与 sidebar 共用）；新增文档页
   先加映射再发布。
