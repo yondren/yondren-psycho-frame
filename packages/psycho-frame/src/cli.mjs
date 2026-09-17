@@ -70,6 +70,8 @@ const USAGE = `psycho-frame ${version} — 见山处（Yondren）精神力骨架
   help [命令]       无参数打印本用法总览；带命令名打印该命令专属帮助
   version           输出版本号（等价 --version / -v）
 
+任意命令加 --help / -h 打印该命令的专属帮助（等价 psycho-frame help <命令>）。
+
 交互终端运行任意命令时会静默检查最新版本并在有新版时提示（24h 节流、离线静默）；
 设 PSYCHO_FRAME_NO_UPDATE_CHECK=1 关闭。
 
@@ -188,7 +190,7 @@ CLI 自身升级：查询 npm registry；npm 全局安装自动升级到最新�
 示例:
   psycho-frame init my-project
 
-退出码: 0（成功）；1（目标目录非空）
+退出码: 0（成功）；1（目标目录非空）；2（参数非法）
 `,
   adopt: `psycho-frame adopt [目录]
 
@@ -197,7 +199,7 @@ CLI 自身升级：查询 npm registry；npm 全局安装自动升级到最新�
 示例:
   psycho-frame adopt .
 
-退出码: 0（成功）
+退出码: 0（成功）；2（参数非法）
 `,
   doctor: `psycho-frame doctor [目录]
 
@@ -206,7 +208,7 @@ CLI 自身升级：查询 npm registry；npm 全局安装自动升级到最新�
 示例:
   psycho-frame doctor
 
-退出码: 0（健康）；1（存在漂移）
+退出码: 0（健康）；1（存在漂移）；2（参数非法）
 `,
 }
 
@@ -216,10 +218,6 @@ const rest = args.slice(1)
 
 if (args.length === 0 || cmd === '--help' || cmd === '-h') {
   console.log(USAGE)
-  process.exit(0)
-}
-if (cmd === '--version' || cmd === '-v' || cmd === 'version') {
-  console.log(version)
   process.exit(0)
 }
 if (cmd === 'help') {
@@ -234,6 +232,23 @@ if (cmd === 'help') {
     process.exit(2)
   }
   console.log(entry)
+  process.exit(0)
+}
+
+// 任意命令带 --help/-h：只打印该命令的专属帮助并退出，绝不执行命令本身
+// （否则 init --help 会把 --help 当目标目录就地脚手架）。
+if (rest.includes('--help') || rest.includes('-h')) {
+  const entry = COMMAND_HELP[cmd]
+  if (entry === undefined) {
+    console.error(`psycho-frame: 未知命令 "${cmd}"\n\n${USAGE}`)
+    process.exit(2)
+  }
+  console.log(entry)
+  process.exit(0)
+}
+
+if (cmd === '--version' || cmd === '-v' || cmd === 'version') {
+  console.log(version)
   process.exit(0)
 }
 
@@ -256,6 +271,21 @@ if (cmd !== 'self-upgrade') {
 
 function resolveRoot() {
   return gitToplevel(process.cwd()) ?? process.cwd()
+}
+
+// init/adopt/doctor 只接受至多一个目录参数：未知选项与多余参数一律退出码 2，
+// 不接受以 - 开头的目标目录（需要时写 ./-dir）。
+function singleTargetArg(cmdName) {
+  const unknown = rest.find(a => a.startsWith('-'))
+  if (unknown !== undefined) {
+    console.error(`psycho-frame ${cmdName}: 未知参数 "${unknown}"\n\n${USAGE}`)
+    process.exit(2)
+  }
+  if (rest.length > 1) {
+    console.error(`psycho-frame ${cmdName}: 最多提供一个目录参数\n\n${USAGE}`)
+    process.exit(2)
+  }
+  return rest[0] ?? '.'
 }
 
 switch (cmd) {
@@ -387,12 +417,12 @@ switch (cmd) {
   }
   case 'init':
   case 'adopt': {
-    const r = scaffold({ target: rest[0] ?? '.', mode: cmd })
+    const r = scaffold({ target: singleTargetArg(cmd), mode: cmd })
     if (r.exitCode !== 0) process.exit(r.exitCode)
     break
   }
   case 'doctor': {
-    const r = doctor({ target: rest[0] ?? '.' })
+    const r = doctor({ target: singleTargetArg(cmd) })
     if (r.exitCode !== 0) process.exit(r.exitCode)
     break
   }

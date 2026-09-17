@@ -119,3 +119,39 @@ test('upgrade CLI：未知参数与多目录都退出码 2', () => {
   assert.match(runCli(cwd, ['upgrade', '--bogus']).stderr, /未知参数/)
   assert.equal(runCli(cwd, ['upgrade', 'a', 'b']).status, 2)
 })
+
+test('任意命令 --help/-h：打印该命令专属帮助且绝不执行命令', () => {
+  const cwd = tempDir()
+  const cases = [
+    [['init', '--help'], /psycho-frame init/],
+    [['adopt', '-h'], /psycho-frame adopt/],
+    [['doctor', '--help'], /psycho-frame doctor/],
+    [['verify', '--help'], /psycho-frame verify/],
+    [['mode', '--help'], /psycho-frame mode/],
+    [['upgrade', '--help'], /psycho-frame upgrade/],
+    [['self-upgrade', '--help'], /psycho-frame self-upgrade/],
+    [['version', '--help'], /psycho-frame version/],
+  ]
+  for (const [argv, expected] of cases) {
+    const r = runCli(cwd, argv)
+    assert.equal(r.status, 0, `${argv.join(' ')} 退出码应为 0`)
+    assert.match(r.stdout, expected)
+  }
+  assert.deepEqual(fs.readdirSync(cwd), [], '--help 不得就地生成文件或目录')
+})
+
+test('未知命令带 --help 退出码 2', () => {
+  const r = runCli(fixtureRepo(), ['bogus', '--help'])
+  assert.equal(r.status, 2)
+  assert.match(r.stderr, /未知命令/)
+})
+
+test('init/adopt/doctor：未知选项与多余目录参数退出码 2 且不落盘', () => {
+  const cwd = tempDir()
+  for (const argv of [['init', '--bogus'], ['init', 'a', 'b'], ['adopt', '-x'], ['doctor', 'a', 'b']]) {
+    const r = runCli(cwd, argv)
+    assert.equal(r.status, 2, `${argv.join(' ')} 退出码应为 2`)
+    assert.match(r.stderr, /未知参数|最多提供一个目录参数/)
+  }
+  assert.deepEqual(fs.readdirSync(cwd), [], '参数非法时不得生成文件或目录')
+})
