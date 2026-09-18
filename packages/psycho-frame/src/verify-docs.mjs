@@ -76,10 +76,13 @@ export function verifyDocs(root) {
     return { errors: [e.message], count: 0 }
   }
   const mdFiles = []
+  // 非知识层目录一律不扫：依赖、缓存、worktree 副本、升级备份，以及 .local/（本地草稿，
+  // 如 issue/PR 正文；见 docs/cookbook/submit-pr.md）。
+  const SKIP_DIRS = new Set(['.git', 'node_modules', '.pnpm-store', '.psycho-frame-upgrade', '.worktrees', '.local'])
 
   function walk(dir) {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-      if (e.name === '.git' || e.name === 'node_modules' || e.name === '.pnpm-store' || e.name === '.psycho-frame-upgrade' || e.name === '.worktrees') continue
+      if (SKIP_DIRS.has(e.name)) continue
       const p = path.join(dir, e.name)
       if (e.isDirectory()) walk(p)
       else if (e.name.endsWith('.md')) mdFiles.push(p)

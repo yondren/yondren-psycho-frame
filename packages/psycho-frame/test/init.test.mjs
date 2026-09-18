@@ -197,6 +197,25 @@ test('模板：毁灭模式与 task start 随模板落地', () => {
   assert.deepEqual(cfg.destroyChecks, ['pnpm run doctor'])
 })
 
+test('模板：issue/PR 模板与 submit-pr cookbook 随模板落地', () => {
+  const cwd = tempDir()
+  scaffold({ cwd, target: 'proj', mode: 'init', stdout: noop, stderr: noop })
+  for (const f of [
+    '.github/PULL_REQUEST_TEMPLATE.md',
+    '.github/ISSUE_TEMPLATE/bug_report.md',
+    '.github/ISSUE_TEMPLATE/feature_request.md',
+    'docs/cookbook/submit-pr.md',
+  ]) {
+    assert.ok(fs.existsSync(path.join(cwd, 'proj', f)), `${f} 应随模板落地`)
+  }
+  const index = fs.readFileSync(path.join(cwd, 'proj/docs/cookbook/README.md'), 'utf8')
+  assert.ok(index.includes('submit-pr.md'))
+  assert.ok(fs.readFileSync(path.join(cwd, 'proj/.gitignore'), 'utf8').includes('.local/'))
+  const templateCfg = JSON.parse(fs.readFileSync(new URL('../template/.psycho-frame.json', import.meta.url), 'utf8'))
+  const cfg = JSON.parse(fs.readFileSync(path.join(cwd, 'proj/.psycho-frame.json'), 'utf8'))
+  assert.equal(cfg.budgets['docs/cookbook/submit-pr.md'], templateCfg.budgets['docs/cookbook/submit-pr.md'])
+})
+
 test('模板：合流开关文档与预算随模板落地', () => {
   const cwd = tempDir()
   scaffold({ cwd, target: 'proj', mode: 'init', stdout: noop, stderr: noop })

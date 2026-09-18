@@ -8,3 +8,5 @@ node_modules
 dist/
 .worktrees/
 .psycho-frame-upgrade/
+# 本地草稿（issue/PR 正文等），不入 Git
+.local/

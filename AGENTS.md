@@ -30,6 +30,8 @@
 - 骨架升级例外：`pnpm run doctor` 或 `psycho-frame upgrade --dry-run --exit-code` 报漂移时提出升级，
   升级在根 checkout 原地进行、不建 worktree（[cookbook](docs/cookbook/skeleton-upgrade.md)）。
 - 提交信息必须包含 task_key；禁止 raw `--force` 推送，重写已推历史必须租约保护。
+- 提 issue / PR：正文结构与命令见 [docs/cookbook/submit-pr.md](docs/cookbook/submit-pr.md)（模板在
+  `.github/`）；agent 可以直接开单，但不自动合并、不自动关闭。
 - 推送：`git push origin main`（GitHub 主远端）+ `git push codeup main:mirror`（codeup 备份）；
   远端拓扑与历史策略见
   [decisions/implemented/architecture/2026-09-09-yondern-psycho-frame-oss.md](decisions/implemented/architecture/2026-09-09-yondern-psycho-frame-oss.md)。

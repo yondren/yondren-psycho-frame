@@ -7,6 +7,7 @@ export const contentMap = [
   { src: 'docs/cookbook/tutorial.md', dest: 'src/guide/tutorial', title: '使用教程', group: '指南' },
   { src: 'docs/concepts.md', dest: 'src/guide/concepts', title: '核心理念', group: '指南' },
   { src: 'docs/modes.md', dest: 'src/guide/modes', title: '工作模式', group: '指南' },
+  { src: 'docs/cookbook/submit-pr.md', dest: 'src/guide/submit-pr', title: '提 issue 与 PR', group: '指南' },
   { src: 'packages/psycho-frame/README.md', dest: 'src/reference/cli', title: 'CLI 与配置', group: '参考' },
 ]
 

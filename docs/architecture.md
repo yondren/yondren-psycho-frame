@@ -25,7 +25,8 @@
 ## 扩展点
 
 - 门禁语义在 `packages/psycho-frame/src/verify-docs.mjs`；封闭集合与预算走
-  `.psycho-frame.json`，缺省用包内置值；毁灭门禁在 `packages/psycho-frame/src/destroy.mjs`
+  `.psycho-frame.json`，缺省用包内置值；目录遍历跳过依赖、缓存、worktree 副本、升级备份与
+  `.local/` 草稿；毁灭门禁在 `packages/psycho-frame/src/destroy.mjs`
   （worktree 纪律、决策记录、task_key、凭据扫描、`destroyChecks` 矩阵），仅 `workMode.destroy=on`
   时并入 `verify`。
 - worktree 纪律在 `packages/psycho-frame/src/worktree.mjs`：`task start` 一条命令开 worktree，
