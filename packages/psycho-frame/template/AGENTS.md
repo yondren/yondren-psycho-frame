@@ -29,6 +29,8 @@
   任务卡与 hooks 隔离，`psycho-frame task check` 校验纪律；并行任务永不共享 checkout，流程见
   [docs/cookbook/parallel-worktrees.md](docs/cookbook/parallel-worktrees.md)。
 - 提交信息必须包含 task_key；禁止 raw `--force` 推送，重写已推历史必须租约保护。
+- 提 issue / PR：正文结构与命令见 [docs/cookbook/submit-pr.md](docs/cookbook/submit-pr.md)（模板在
+  `.github/`）；agent 可以直接开单，但不自动合并、不自动关闭。
 
 ## 验证
 本地只跑与改动面匹配的最窄验证：先 `pnpm change-scope --base <ref>` 取改动面，再选覆盖该面的检查；

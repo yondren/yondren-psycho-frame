@@ -18,4 +18,8 @@ issue 模板（bug / feature）作为正文骨架；cookbook 索引、字数预�
 
 ## 进度
 
-- [IN_PROGRESS] 2026-09-18 worktree `pr-issue-cookbook` 内开工。
+- [DONE] 2026-09-18 worktree `pr-issue-cookbook` 内实现：cookbook、`.github/` 三个模板、门禁跳过
+  `.local/`、索引与官网映射、模板镜像与决策记录。
+- [DONE] 2026-09-18 验证：文档门禁通过（154 个文件）、测试 149 项全过、`task check` 通过、官网映射
+  存在性校验通过。
+- [IN_PROGRESS] 待合流到 `main`（按 `workMode.merge=ask` 等用户确认）。

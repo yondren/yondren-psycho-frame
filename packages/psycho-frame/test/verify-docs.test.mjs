@@ -19,6 +19,17 @@ test('合法骨架零错误', () => {
   assert.deepEqual(errs(fixtureRepo()), [])
 })
 
+test('目录遍历跳过 .local/、.worktrees/ 等非知识层目录', () => {
+  const control = verifyDocs(fixtureRepo())
+  const root = fixtureRepo()
+  // 草稿里的坏链接不得影响门禁（issue/PR 正文草稿的默认位置）
+  write(root, '.local/pr.md', '# 草稿\n\n见 [缺失](../missing.md)。\n')
+  write(root, '.worktrees/x/docs/note.md', '# 副本\n\n见 [缺失](nope.md)。\n')
+  const result = verifyDocs(root)
+  assert.deepEqual(result.errors, [])
+  assert.equal(result.count, control.count, '跳过的目录不计入文件数')
+})
+
 // ---------- 链接与锚点 ----------
 
 test('链接目标不存在', () => {
