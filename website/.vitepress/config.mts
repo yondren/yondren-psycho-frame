@@ -8,7 +8,7 @@ const base = process.env.DOCS_BASE ?? '/'
 export default defineConfig({
   lang: 'zh-CN',
   title: 'yondren-psycho-frame',
-  description: '见山处（Yondren）精神力骨架：把事实、决策、任务、报告四层知识放进 Git，用一条命令挡住文档腐化；零运行时依赖。',
+  description: '见山处（Yondren）精神力骨架：把事实、决策、任务、报告四层知识放进 Git，Agent 之间共享同一份记忆、多任务本地 worktree 并行，一条命令挡住文档腐化。',
   base,
   srcDir: './src',
   cleanUrls: true,

@@ -1,7 +1,7 @@
 # cookbook 自动整理：命令、技能与共享工具链范例
 
 - task_key: cookbook-authoring
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-18
 - updated: 2026-09-18
 - report: [reports/cookbook-authoring.md](../reports/cookbook-authoring.md)
@@ -24,4 +24,4 @@ shared-toolchain.md`（以 Java/Maven/JDK「一套就够、全员共用」为例
 - [DONE] 2026-09-18 验证：测试 162 项全过、文档门禁 163 个文件通过、`task check` 通过、毁灭模式
   自审全绿、模板落地与 npm 打包检查通过。
 - [DONE] 2026-09-18 修掉 dogfooding 抓到的假阳性：任务卡合并视图改为主 checkout 权威（回归测试锁定）。
-- [IN_PROGRESS] 待合流到 `main`（用户已授权自动合流）。
+- [DONE] 2026-09-18 已按用户授权合流到 `main`（`8df7b56`），worktree 已删除。

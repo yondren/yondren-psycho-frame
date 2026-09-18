@@ -1,7 +1,7 @@
 # cookbook-authoring 执行报告
 
 - task_key: cookbook-authoring
-- 状态: IN_PROGRESS（实现与验证完成，待合流）
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
@@ -67,7 +67,8 @@ README 与 CLI 帮助；扩展点进 [docs/architecture.md](../docs/architecture
 
 ## 6. 合流状态
 
-未合流：分支 `cookbook-authoring`（用户已授权任务 3 完成后自动合流）。
+已按用户授权合流到 `main`：任务提交 `b2cbb6c`、合流提交 `8df7b56`
+（`git merge --no-ff cookbook-authoring`），worktree `.worktrees/cookbook-authoring` 已删除。
 
 ## 7. 还剩什么阻塞
 
