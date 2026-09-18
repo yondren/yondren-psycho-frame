@@ -41,3 +41,5 @@ worktree 会让每个任务付一次冷安装成本。
 - 任务卡与报告占位由命令生成，`task start` 之后必须补齐任务卡「范围」再开工。
 - `task start` 对宿主仓库的唯一自动改动是补 `.gitignore` 的 `.worktrees/`。
 - 手工 `git worktree add` 仍可用，但 `task check` 会因缺 hooks 隔离报违规。
+- 任务状态以主 checkout 为权威：从 worktree 内检查时，当前分支只补主 checkout 没有的任务卡，
+  不让分支覆盖主 checkout——否则分支上过期的 `IN_PROGRESS` 会对已合流的任务误报"没有 worktree"。

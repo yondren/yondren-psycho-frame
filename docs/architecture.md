@@ -31,6 +31,9 @@
   时并入 `verify`。
 - worktree 纪律在 `packages/psycho-frame/src/worktree.mjs`：`task start` 一条命令开 worktree，
   `checkWorktrees` 是 `task check` 与毁灭门禁共用的检查引擎。
+- cookbook 脚手架在 `packages/psycho-frame/src/cookbook.mjs`：`cookbook new` 写骨架、登记索引与
+  字数预算；判定标准与五问的唯一家在 [cookbook/authoring-cookbooks.md](cookbook/authoring-cookbooks.md)，
+  触发这条流程的技能在 `.agents/skills/author-cookbook/`。
 - 工作模式的取值、读写与默认收敛在 `packages/psycho-frame/src/work-mode.mjs`（七把开关同表），
   verify 门禁与 mode CLI 共用；语义见 [modes.md](modes.md)。
 - 结构漂移检查在 `packages/psycho-frame/src/init.mjs`：doctor 查必需文件、配置、脚本与骨架漂移

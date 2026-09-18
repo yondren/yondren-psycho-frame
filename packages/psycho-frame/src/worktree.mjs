@@ -108,10 +108,16 @@ export function ensureWorktreesIgnored(root, { write = false } = {}) {
   return { ignored: true, changed: true }
 }
 
-/** 任务卡的合并视图：主 checkout 是权威状态，当前 checkout 覆盖它（新开的任务卡可能还没提交）。 */
+/**
+ * 任务卡的合并视图：主 checkout 是权威状态，当前 checkout 只补它没有的卡。
+ * 不能反过来让分支覆盖主 checkout：分支上的卡可能过期（别的任务已合流并置 DONE，本分支还停在
+ * IN_PROGRESS），覆盖会产生"没有 worktree"的假阳性。
+ */
 function mergeCards(authoritative, overlay) {
   const map = new Map(authoritative.map(c => [c.key, c]))
-  for (const card of overlay) map.set(card.key, card)
+  for (const card of overlay) {
+    if (!map.has(card.key)) map.set(card.key, card)
+  }
   return [...map.values()]
 }
 

@@ -30,6 +30,7 @@ pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版�
 | `mode` | 查看当前工作模式（七把开关）；`mode set <key>=<value>` 设置并写回配置，`mode reset` 恢复默认 |
 | `task start <task_key> [--base <ref>]` | 一条命令开任务 worktree：建分支与 `.worktrees/<task_key>`、登记任务卡与报告占位、隔离 worktree 级 `core.hooksPath`，缺 `.worktrees/` 时补 `.gitignore`；幂等，只能从主 checkout 执行 |
 | `task check [--json]` | worktree 纪律检查：`IN_PROGRESS` 必须有 worktree、`DONE` 不留 worktree、无孤儿、根 checkout 不检出任务分支、各 worktree 的 `core.hooksPath` 互不相同 |
+| `cookbook new <slug> [--title <标题>] [--budget <正整数>]` | 新增 `docs/cookbook/<slug>.md` 骨架、在 cookbook 索引追加一行、在 `budgets` 登记字数上限（默认 400）；已存在时幂等跳过，判定标准见 [整理 cookbook](https://github.com/yondren/yondren-psycho-frame/blob/main/docs/cookbook/authoring-cookbooks.md) |
 | `upgrade [目录]` | 骨架一键升级：模板优先，被覆盖的本地改动备份到 `.psycho-frame-upgrade/`，配置增量合并（对象键下探一层补缺），README.md 保留本地；`--dry-run` 只预览，`--exit-code` 让预览有变更时退出码 1；无目录参数时定位 git 仓库根；非骨架项目、框架源码仓库与 linked worktree 中止（升级改的是全仓库共享的根文件，须在根 checkout 原地执行，见 [骨架升级](https://github.com/yondren/yondren-psycho-frame/blob/main/docs/cookbook/skeleton-upgrade.md)） |
 | `self-upgrade` | CLI 自身升级：npm 全局安装自动 `npm install -g` 到最新版，其余安装方式打印对应指引；`--check` 只查询（退出码 0=最新、1=落后） |
 | `init [目录]` | 新项目脚手架，生成知识四层 + AGENTS.md + 配置 |

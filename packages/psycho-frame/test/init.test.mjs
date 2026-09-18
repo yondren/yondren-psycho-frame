@@ -197,6 +197,25 @@ test('模板：毁灭模式与 task start 随模板落地', () => {
   assert.deepEqual(cfg.destroyChecks, ['pnpm run doctor'])
 })
 
+test('模板：author-cookbook 技能与两本 cookbook 随模板落地', () => {
+  const cwd = tempDir()
+  scaffold({ cwd, target: 'proj', mode: 'init', stdout: noop, stderr: noop })
+  const templateCfg = JSON.parse(fs.readFileSync(new URL('../template/.psycho-frame.json', import.meta.url), 'utf8'))
+  for (const f of [
+    '.agents/skills/author-cookbook/SKILL.md',
+    'docs/cookbook/authoring-cookbooks.md',
+    'docs/cookbook/shared-toolchain.md',
+  ]) {
+    assert.ok(fs.existsSync(path.join(cwd, 'proj', f)), `${f} 应随模板落地`)
+  }
+  const index = fs.readFileSync(path.join(cwd, 'proj/docs/cookbook/README.md'), 'utf8')
+  assert.ok(index.includes('authoring-cookbooks.md') && index.includes('shared-toolchain.md'))
+  const cfg = JSON.parse(fs.readFileSync(path.join(cwd, 'proj/.psycho-frame.json'), 'utf8'))
+  for (const f of ['docs/cookbook/authoring-cookbooks.md', 'docs/cookbook/shared-toolchain.md']) {
+    assert.equal(cfg.budgets[f], templateCfg.budgets[f], `${f} 的预算应随模板落地`)
+  }
+})
+
 test('模板：issue/PR 模板与 submit-pr cookbook 随模板落地', () => {
   const cwd = tempDir()
   scaffold({ cwd, target: 'proj', mode: 'init', stdout: noop, stderr: noop })

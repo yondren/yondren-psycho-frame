@@ -92,6 +92,25 @@ test('checkWorktrees：常驻骨架（无任务、无 worktree）也合规', () 
   assert.deepEqual(checkWorktrees(root).issues, [])
 })
 
+test('checkWorktrees：分支上的过期任务卡不覆盖主 checkout 的新状态', () => {
+  const root = gitFixture()
+  // 主 checkout 上先有一个 IN_PROGRESS 任务，随后被另一个任务分支取走
+  write(root, 'tasks/2026-01-02-other.md', '# 任务\n\n- task_key: other\n- status: IN_PROGRESS\n')
+  gitIn(root, 'add', '-A')
+  gitIn(root, 'commit', '-q', '-m', 'docs(task): 登记 other [other]')
+  startTask({ root, key: 'worker', date: '2026-01-02', stdout: quiet })
+  // other 在主 checkout 上完成（分支上仍是过期的 IN_PROGRESS）
+  write(root, 'tasks/2026-01-02-other.md', '# 任务\n\n- task_key: other\n- status: DONE\n')
+  gitIn(root, 'add', '-A')
+  gitIn(root, 'commit', '-q', '-m', 'docs(task): other 置 DONE [other]')
+
+  const fromWorktree = checkWorktrees(wtPath(root, 'worker'))
+  assert.ok(
+    !fromWorktree.issues.some(i => /other 为 IN_PROGRESS 但没有 worktree/.test(i)),
+    fromWorktree.issues.join('\n'),
+  )
+})
+
 test('checkWorktrees：IN_PROGRESS 无 worktree 报违规', () => {
   const root = gitFixture()
   write(root, 'tasks/2026-01-02-lonely.md', '# 任务\n\n- task_key: lonely\n- status: IN_PROGRESS\n')

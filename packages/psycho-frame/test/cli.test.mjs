@@ -255,3 +255,47 @@ test('verify CLI：destroy=on 时要求 --base、跑 destroyChecks 并把 checks
   assert.equal(bad.status, 1)
   assert.match(bad.stderr, /毁灭矩阵失败/)
 })
+
+test('cookbook CLI：help、未知子命令与非法参数都退出码 2', () => {
+  const root = gitFixture()
+  const help = runCli(root, ['help', 'cookbook'])
+  assert.equal(help.status, 0)
+  assert.match(help.stdout, /psycho-frame cookbook new/)
+  assert.match(help.stdout, /authoring-cookbooks\.md/)
+  for (const argv of [
+    ['cookbook'],
+    ['cookbook', 'bogus'],
+    ['cookbook', 'new'],
+    ['cookbook', 'new', 'Bad_Slug'],
+    ['cookbook', 'new', 'demo', '--bogus'],
+    ['cookbook', 'new', 'demo', '--title'],
+    ['cookbook', 'new', 'demo', '--budget', 'abc'],
+    ['cookbook', 'new', 'demo', 'extra'],
+  ]) {
+    const r = runCli(root, argv)
+    assert.equal(r.status, 2, `${argv.join(' ')} 退出码应为 2`)
+    assert.match(r.stderr, /未知参数|必须提供 slug|必须全小写连字符|最多提供一个|缺少取值|必须为正整数|未知子命令/)
+  }
+  assert.equal(fs.existsSync(path.join(root, 'docs/cookbook/demo.md')), false, '参数非法时不得落盘')
+})
+
+test('cookbook CLI：new 落盘后门禁仍通过，重复执行幂等', () => {
+  const root = gitFixture()
+  const first = runCli(root, ['cookbook', 'new', 'demo-flow', '--title', '演示流程'])
+  assert.equal(first.status, 0, first.stderr)
+  assert.match(first.stdout, /docs\/cookbook\/demo-flow\.md/)
+  assert.ok(fs.existsSync(path.join(root, 'docs/cookbook/demo-flow.md')))
+  const index = fs.readFileSync(path.join(root, 'docs/cookbook/README.md'), 'utf8')
+  assert.match(index, /demo-flow\.md/)
+  const cfg = JSON.parse(fs.readFileSync(path.join(root, '.psycho-frame.json'), 'utf8'))
+  assert.equal(cfg.budgets['docs/cookbook/demo-flow.md'], 400)
+
+  const gate = runCli(root, ['verify'])
+  assert.equal(gate.status, 0, gate.stderr)
+
+  const again = runCli(root, ['cookbook', 'new', 'demo-flow'])
+  assert.equal(again.status, 0)
+  assert.match(again.stdout, /\[skip\]/)
+  const after = fs.readFileSync(path.join(root, 'docs/cookbook/README.md'), 'utf8')
+  assert.equal(after.split('\n').filter(l => l.includes('](demo-flow.md)')).length, 1)
+})

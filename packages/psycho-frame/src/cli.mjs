@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// psycho-frame CLI：verify / scope / mode / task / upgrade / self-upgrade / init / adopt / doctor / help / version。
-// 零依赖；verify、mode、task 与 doctor 的仓库根 = cwd 的 git toplevel（无 git 时回退 cwd）。
+// psycho-frame CLI：verify / scope / mode / task / cookbook / upgrade / self-upgrade / init / adopt / doctor / help / version。
+// 零依赖；verify、mode、task、cookbook 与 doctor 的仓库根 = cwd 的 git toplevel（无 git 时回退 cwd）。
 import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
@@ -10,6 +10,7 @@ import { verifyDocs } from './verify-docs.mjs'
 import { run as runScope } from './change-scope.mjs'
 import { destroyGate } from './destroy.mjs'
 import { startTask, checkWorktrees } from './worktree.mjs'
+import { newCookbook, DEFAULT_BUDGET } from './cookbook.mjs'
 import { scaffold, doctor } from './init.mjs'
 import { run as runUpgrade } from './upgrade.mjs'
 import { readWorkMode, setWorkMode, DEFAULT_WORK_MODE } from './work-mode.mjs'
@@ -67,6 +68,8 @@ const USAGE = `psycho-frame ${version} — 见山处（Yondren）精神力骨架
   task check [--json]
                     worktree 纪律检查：IN_PROGRESS 必须有 worktree、DONE 不留 worktree、
                     任务分支不在根 checkout 检出、各 worktree 的 core.hooksPath 互不相同
+  cookbook new <slug> [--title <标题>] [--budget <正整数>]
+                    新增 docs/cookbook/<slug>.md 骨架、登记索引与字数预算；已存在时幂等跳过
   upgrade [目录] [--dry-run] [--exit-code]
                     骨架一键升级：模板优先，被覆盖的本地改动自动备份到
                     .psycho-frame-upgrade/；配置增量合并；README.md 保留本地；加 --dry-run
@@ -94,6 +97,7 @@ const USAGE = `psycho-frame ${version} — 见山处（Yondren）精神力骨架
   psycho-frame mode
   psycho-frame mode set plan=off fleet=on
   psycho-frame mode set destroy=on
+  psycho-frame cookbook new shared-toolchain --title "共享工具链"
   psycho-frame upgrade --dry-run
   psycho-frame init my-project
   psycho-frame adopt .
@@ -199,6 +203,21 @@ BLOCKED/DEFERRED 必须写原因。destroy=on 时这些项并入 psycho-frame ve
   psycho-frame task check --json
 
 退出码: 0（成功或纪律通过）；1（错误或存在违规）；2（参数非法）
+`,
+  cookbook: `psycho-frame cookbook new <slug> [--title <标题>] [--budget <正整数>]
+
+新增一个 cookbook：写 docs/cookbook/<slug>.md 骨架（编号步骤 + 验证清单）、在
+docs/cookbook/README.md 追加索引行、在 .psycho-frame.json 的 budgets 登记字数上限
+（默认 ${DEFAULT_BUDGET}）。文件已存在时幂等跳过，只补索引与预算缺项。
+
+slug 必须全小写连字符；缺 docs/cookbook/ 时中止（先 init 或 adopt 接入骨架）。
+判定标准与五问（什么时候该写 cookbook、写到哪一层）见 docs/cookbook/authoring-cookbooks.md。
+
+示例:
+  psycho-frame cookbook new shared-toolchain --title "共享工具链"
+  psycho-frame cookbook new ci-cache --title "CI 缓存" --budget 500
+
+退出码: 0（成功或已存在）；1（错误）；2（参数非法）
 `,
   upgrade: `psycho-frame upgrade [目录] [--dry-run] [--exit-code]
 
@@ -504,6 +523,51 @@ switch (cmd) {
       break
     }
     console.error(`psycho-frame task: 未知子命令 "${String(sub)}"（可用: start / check）\n\n${USAGE}`)
+    process.exit(2)
+  }
+  case 'cookbook': {
+    const root = resolveRoot()
+    const sub = rest[0]
+    if (sub === 'new') {
+      let slug
+      let title
+      let budget = DEFAULT_BUDGET
+      let bad = null
+      for (let i = 1; i < rest.length && bad === null; i += 1) {
+        const arg = rest[i]
+        const takeValue = () => {
+          const v = rest[i + 1]
+          if (v === undefined || v.startsWith('-')) {
+            bad = `${arg} 缺少取值`
+            return undefined
+          }
+          i += 1
+          return v
+        }
+        if (arg === '--title') title = takeValue()
+        else if (arg === '--budget') {
+          const raw = takeValue()
+          if (raw !== undefined) budget = Number(raw)
+        } else if (arg.startsWith('-')) bad = `未知参数 "${arg}"`
+        else if (slug === undefined) slug = arg
+        else bad = `最多提供一个 slug（多余 "${arg}"）`
+      }
+      if (bad !== null) {
+        console.error(`psycho-frame cookbook new: ${bad}\n\n${USAGE}`)
+        process.exit(2)
+      }
+      if (slug === undefined) {
+        console.error(`psycho-frame cookbook new: 必须提供 slug\n\n${USAGE}`)
+        process.exit(2)
+      }
+      const result = newCookbook({ root, slug, budget, ...(title === undefined ? {} : { title }) })
+      if (!result.ok) {
+        console.error(`psycho-frame cookbook new: ${result.errors.join('\n')}`)
+        process.exit(result.exitCode)
+      }
+      break
+    }
+    console.error(`psycho-frame cookbook: 未知子命令 "${String(sub)}"（可用: new）\n\n${USAGE}`)
     process.exit(2)
   }
   case 'upgrade': {
