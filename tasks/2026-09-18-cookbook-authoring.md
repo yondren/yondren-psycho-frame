@@ -19,4 +19,9 @@ shared-toolchain.md`（以 Java/Maven/JDK「一套就够、全员共用」为例
 
 ## 进度
 
-- [IN_PROGRESS] 2026-09-18 worktree `cookbook-authoring` 内开工。
+- [DONE] 2026-09-18 worktree `cookbook-authoring` 内实现：`cookbook new` 命令、两本 cookbook、
+  author-cookbook 技能、索引/预算/官网映射/模板镜像与决策记录。
+- [DONE] 2026-09-18 验证：测试 162 项全过、文档门禁 163 个文件通过、`task check` 通过、毁灭模式
+  自审全绿、模板落地与 npm 打包检查通过。
+- [DONE] 2026-09-18 修掉 dogfooding 抓到的假阳性：任务卡合并视图改为主 checkout 权威（回归测试锁定）。
+- [IN_PROGRESS] 待合流到 `main`（用户已授权自动合流）。
