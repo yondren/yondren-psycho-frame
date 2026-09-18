@@ -1,7 +1,7 @@
 # task start 命令与毁灭模式门禁 执行报告
 
 - task_key: task-start-destroy
-- 状态: IN_PROGRESS（实现与验证完成，待合流）
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
@@ -80,7 +80,8 @@ worktree、无孤儿 worktree、根 checkout 不检出任务分支、各 worktre
 
 ## 6. 合流状态
 
-未合流：分支 `task-start-destroy`（等待用户按 `workMode.merge=ask` 确认后合流到 `main`）。
+已按 `workMode.merge=ask`（用户确认）合流到 `main`：任务提交 `0175526`、合流提交 `9b32987`
+（`git merge --no-ff task-start-destroy`），worktree `.worktrees/task-start-destroy` 已删除。
 
 ## 7. 还剩什么阻塞
 

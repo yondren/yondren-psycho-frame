@@ -1,7 +1,7 @@
 # task start 命令与毁灭模式门禁
 
 - task_key: task-start-destroy
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-18
 - updated: 2026-09-18
 - report: [reports/task-start-destroy.md](../reports/task-start-destroy.md)
@@ -26,4 +26,4 @@ worktree 级 hooks 隔离）与 `psycho-frame task check`；`workMode.destroy` �
   `verify --base main` 全绿（`pnpm test` + `pnpm run doctor`），并当场演示缺 `--base` 与凭据命中
   两种失败。
 - [DONE] 2026-09-18 文档、模板镜像、预算上调与两条决策记录同步。
-- [IN_PROGRESS] 待合流到 `main`（按 `workMode.merge=ask` 等用户确认）。
+- [DONE] 2026-09-18 已按 `workMode.merge=ask` 合流到 `main`（`9b32987`），worktree 已删除。
