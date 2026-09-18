@@ -1,7 +1,7 @@
 # 提 issue/PR 的 cookbook 与模板
 
 - task_key: pr-issue-cookbook
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-18
 - updated: 2026-09-18
 - report: [reports/pr-issue-cookbook.md](../reports/pr-issue-cookbook.md)
@@ -22,4 +22,4 @@ issue 模板（bug / feature）作为正文骨架；cookbook 索引、字数预�
   `.local/`、索引与官网映射、模板镜像与决策记录。
 - [DONE] 2026-09-18 验证：文档门禁通过（154 个文件）、测试 149 项全过、`task check` 通过、官网映射
   存在性校验通过。
-- [IN_PROGRESS] 待合流到 `main`（按 `workMode.merge=ask` 等用户确认）。
+- [DONE] 2026-09-18 已按 `workMode.merge=ask`（用户授权）合流到 `main`（`d9cbf7a`），worktree 已删除。

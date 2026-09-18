@@ -1,7 +1,7 @@
 # pr-issue-cookbook 执行报告
 
 - task_key: pr-issue-cookbook
-- 状态: IN_PROGRESS（实现与验证完成，待合流）
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
@@ -60,7 +60,8 @@ CI 红时追加修复提交（重写已推历史必须租约保护），review �
 
 ## 6. 合流状态
 
-未合流：分支 `pr-issue-cookbook`（等待用户按 `workMode.merge=ask` 确认后合流到 `main`）。
+已按 `workMode.merge=ask`（用户授权）合流到 `main`：任务提交 `253e5b4`、合流提交 `d9cbf7a`
+（`git merge --no-ff pr-issue-cookbook`），worktree `.worktrees/pr-issue-cookbook` 已删除。
 
 ## 7. 还剩什么阻塞
 
