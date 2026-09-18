@@ -1,5 +1,6 @@
-// 工作模式：六把正交开关——纪律 plan（on/off）、confirmAmbiguous（true/false）、fleet（on/off）、
-// merge（off/ask/auto），加两条轴 audience（expert/product/novice）与 engineering（on/off）。
+// 工作模式：七把正交开关——纪律 plan（on/off）、confirmAmbiguous（true/false）、fleet（on/off）、
+// merge（off/ask/auto）、destroy（on/off），加两条轴 audience（expert/product/novice）与
+// engineering（on/off）。
 // 真源在 <root>/.psycho-frame.json 的 workMode 字段，缺省用内置默认；取值封闭，由本模块校验，
 // verify 门禁与 mode CLI 共用；新增开关只改 MODES 表。语义与耦合矩阵见 docs/modes.md。
 // config 读取也收敛在这里（verify-docs 复用）。
@@ -13,6 +14,7 @@ const MODES = {
   confirmAmbiguous: { values: [true, false], default: true },
   fleet: { values: ['on', 'off'], default: 'off' },
   merge: { values: ['off', 'ask', 'auto'], default: 'ask' },
+  destroy: { values: ['on', 'off'], default: 'off' },
   audience: { values: ['expert', 'product', 'novice'], default: 'expert' },
   engineering: { values: ['on', 'off'], default: 'off' },
 }
@@ -24,6 +26,7 @@ export const PLAN_VALUES = MODES.plan.values
 export const CONFIRM_VALUES = MODES.confirmAmbiguous.values
 export const FLEET_VALUES = MODES.fleet.values
 export const MERGE_VALUES = MODES.merge.values
+export const DESTROY_VALUES = MODES.destroy.values
 export const AUDIENCE_VALUES = MODES.audience.values
 export const ENGINEERING_VALUES = MODES.engineering.values
 

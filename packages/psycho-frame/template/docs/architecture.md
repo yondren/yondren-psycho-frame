@@ -8,7 +8,7 @@
 - 业务层：`apps/`（可选；pnpm workspace 或任意技术栈，模块契约写模块 README）。
 - 指令层：根 `AGENTS.md` + 子树 `AGENTS.md`，Agent 按当前目录自动收到对应规则。
 - 门禁层：由 [yondren-psycho-frame](https://www.npmjs.com/package/yondren-psycho-frame)
-  包提供（verify / scope / mode / upgrade / self-upgrade / doctor），本仓库配置在
+  包提供（verify / scope / mode / task / upgrade / self-upgrade / doctor），本仓库配置在
   [.psycho-frame.json](../.psycho-frame.json)。
 
 ## 流转
@@ -21,4 +21,5 @@
 - 业务代码在 `apps/` 按模块建目录，模块契约写模块 README（one home per fact）。
 - 封闭集合与字数预算在 `.psycho-frame.json`；缺省用包内置值。
 - 高频操作沉淀为 `.agents/skills/<name>/SKILL.md`。
-- 全量门禁矩阵归 CI；本地只跑改动面匹配的检查。
+- 全量门禁矩阵归 CI；本地只跑改动面匹配的检查，`workMode.destroy=on` 时本地矩阵并入 `verify`
+  （[modes.md](modes.md)）。

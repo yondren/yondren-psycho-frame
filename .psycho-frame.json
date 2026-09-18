@@ -19,28 +19,33 @@
     "confirmAmbiguous": true,
     "fleet": "off",
     "merge": "ask",
+    "destroy": "off",
     "audience": "expert",
     "engineering": "off"
   },
   "ignore": [
     ".local/"
   ],
+  "destroyChecks": [
+    "pnpm test",
+    "pnpm run doctor"
+  ],
   "budgets": {
-    "AGENTS.md": 550,
+    "AGENTS.md": 680,
     "README.md": 400,
     "decisions/README.md": 600,
     "docs/AGENTS.md": 650,
-    "docs/architecture.md": 600,
+    "docs/architecture.md": 740,
     "docs/cookbook/README.md": 120,
-    "docs/cookbook/parallel-worktrees.md": 400,
+    "docs/cookbook/parallel-worktrees.md": 480,
     "docs/cookbook/merge.md": 200,
     "docs/cookbook/skeleton-upgrade.md": 400,
     "docs/cookbook/fleet-mode.md": 400,
     "docs/cookbook/release.md": 400,
     "docs/development.md": 780,
-    "docs/modes.md": 850,
+    "docs/modes.md": 1320,
     "docs/postmortem/README.md": 120,
     "reports/README.md": 250,
-    "tasks/README.md": 300
+    "tasks/README.md": 320
   }
 }

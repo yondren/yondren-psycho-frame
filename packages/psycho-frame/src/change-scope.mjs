@@ -105,24 +105,34 @@ export function run(argv) {
   }
 
   try {
-    const baseSha = resolveCommit(root, 'base', options.base)
-    const headSha = resolveCommit(root, 'head', options.head)
-    const mergeBaseSha = resolveMergeBase(root, baseSha, headSha)
-    const report = {
-      formatVersion: 1,
-      repositoryRoot: root,
-      input: { base: options.base, head: options.head },
-      resolved: { baseSha, headSha, mergeBaseSha },
-      paths: {
-        committed: diffPaths(root, [mergeBaseSha, headSha], '无法读取已提交路径'),
-        staged: diffPaths(root, ['--cached'], '无法读取暂存路径'),
-        unstaged: diffPaths(root, [], '无法读取未暂存路径'),
-        untracked: parsePathSet(gitBytes(root, ['ls-files', '--others', '--exclude-standard', '-z', '--'], '无法读取未跟踪路径')),
-      },
-    }
+    const report = collectChangeScope({ root, base: options.base, head: options.head })
     console.log(`${JSON.stringify(report, null, 2)}\n`)
   } catch (e) {
     console.error(`change-scope: ${e.message}`)
     process.exit(1)
   }
+}
+
+/** 四层改动面对象；base 必须显式给出，解析失败抛错（调用方决定退出码）。毁灭门禁复用本函数。 */
+export function collectChangeScope({ root, base, head = 'HEAD' }) {
+  const baseSha = resolveCommit(root, 'base', base)
+  const headSha = resolveCommit(root, 'head', head)
+  const mergeBaseSha = resolveMergeBase(root, baseSha, headSha)
+  return {
+    formatVersion: 1,
+    repositoryRoot: root,
+    input: { base, head },
+    resolved: { baseSha, headSha, mergeBaseSha },
+    paths: {
+      committed: diffPaths(root, [mergeBaseSha, headSha], '无法读取已提交路径'),
+      staged: diffPaths(root, ['--cached'], '无法读取暂存路径'),
+      unstaged: diffPaths(root, [], '无法读取未暂存路径'),
+      untracked: parsePathSet(gitBytes(root, ['ls-files', '--others', '--exclude-standard', '-z', '--'], '无法读取未跟踪路径')),
+    },
+  }
+}
+
+/** 四层合并后的路径清单（去重、字典序）；毁灭门禁按它判断"改动面里有没有决策记录"。 */
+export function changedPaths(report) {
+  return [...new Set(Object.values(report.paths).flat())].sort()
 }

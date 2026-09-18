@@ -176,7 +176,25 @@ test('模板：语域与工程化两条轴随模板落地', () => {
   const cfg = JSON.parse(fs.readFileSync(path.join(cwd, 'proj/.psycho-frame.json'), 'utf8'))
   assert.equal(cfg.workMode.audience, 'expert')
   assert.equal(cfg.workMode.engineering, 'off')
-  assert.equal(cfg.budgets['docs/modes.md'], 850)
+  // 预算数值属于模板事实：跟着模板配置走，避免每次调预算都要改测试字面量
+  const templateCfg = JSON.parse(fs.readFileSync(new URL('../template/.psycho-frame.json', import.meta.url), 'utf8'))
+  assert.equal(cfg.budgets['docs/modes.md'], templateCfg.budgets['docs/modes.md'])
+})
+
+test('模板：毁灭模式与 task start 随模板落地', () => {
+  const cwd = tempDir()
+  scaffold({ cwd, target: 'proj', mode: 'init', stdout: noop, stderr: noop })
+  const modes = fs.readFileSync(path.join(cwd, 'proj/docs/modes.md'), 'utf8')
+  assert.ok(modes.includes('毁灭模式') && modes.includes('destroy=on'))
+  assert.ok(modes.includes('destroyChecks') && modes.includes('psycho-frame:allow-secret'))
+  const agents = fs.readFileSync(path.join(cwd, 'proj/AGENTS.md'), 'utf8')
+  assert.ok(agents.includes('destroy'))
+  assert.ok(agents.includes('psycho-frame task start'))
+  const cookbook = fs.readFileSync(path.join(cwd, 'proj/docs/cookbook/parallel-worktrees.md'), 'utf8')
+  assert.ok(cookbook.includes('psycho-frame task start') && cookbook.includes('task check'))
+  const cfg = JSON.parse(fs.readFileSync(path.join(cwd, 'proj/.psycho-frame.json'), 'utf8'))
+  assert.equal(cfg.workMode.destroy, 'off')
+  assert.deepEqual(cfg.destroyChecks, ['pnpm run doctor'])
 })
 
 test('模板：合流开关文档与预算随模板落地', () => {
