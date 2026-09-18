@@ -25,8 +25,12 @@
 ## 扩展点
 
 - 门禁语义在 `packages/psycho-frame/src/verify-docs.mjs`；封闭集合与预算走
-  `.psycho-frame.json`，缺省用包内置值。
-- 工作模式的取值、读写与默认收敛在 `packages/psycho-frame/src/work-mode.mjs`（六把开关同表），
+  `.psycho-frame.json`，缺省用包内置值；毁灭门禁在 `packages/psycho-frame/src/destroy.mjs`
+  （worktree 纪律、决策记录、task_key、凭据扫描、`destroyChecks` 矩阵），仅 `workMode.destroy=on`
+  时并入 `verify`。
+- worktree 纪律在 `packages/psycho-frame/src/worktree.mjs`：`task start` 一条命令开 worktree，
+  `checkWorktrees` 是 `task check` 与毁灭门禁共用的检查引擎。
+- 工作模式的取值、读写与默认收敛在 `packages/psycho-frame/src/work-mode.mjs`（七把开关同表），
   verify 门禁与 mode CLI 共用；语义见 [modes.md](modes.md)。
 - 结构漂移检查在 `packages/psycho-frame/src/init.mjs`：doctor 查必需文件、配置、脚本与骨架漂移
   （`skeletonDrift` 对比包内模板），并列出领先集成分支（main / master）的本地分支。

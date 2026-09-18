@@ -25,9 +25,11 @@ pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版�
 
 | 命令 | 作用 |
 | --- | --- |
-| `verify [--json]` | 文档门禁：链接/锚点、决策结构与格式、任务头字段、字数预算、工作模式取值；`--json` 输出 `{ formatVersion, ok, count, errors }` |
+| `verify [--json] [--base <ref>]` | 文档门禁：链接/锚点、决策结构与格式、任务头字段、字数预算、工作模式取值；`--json` 输出 `{ formatVersion, ok, count, destroy, checks, errors }`；`workMode.destroy=on` 时追加毁灭门禁（worktree 纪律、决策记录、task_key、凭据扫描、`destroyChecks` 全量矩阵），此时 `--base` 必填，语义见 [工作模式](https://github.com/yondren/yondren-psycho-frame/blob/main/docs/modes.md) |
 | `scope --base <ref>` | 四层改动面报告（committed/staged/unstaged/untracked，JSON） |
-| `mode` | 查看当前工作模式（六把开关）；`mode set <key>=<value>` 设置并写回配置，`mode reset` 恢复默认 |
+| `mode` | 查看当前工作模式（七把开关）；`mode set <key>=<value>` 设置并写回配置，`mode reset` 恢复默认 |
+| `task start <task_key> [--base <ref>]` | 一条命令开任务 worktree：建分支与 `.worktrees/<task_key>`、登记任务卡与报告占位、隔离 worktree 级 `core.hooksPath`，缺 `.worktrees/` 时补 `.gitignore`；幂等，只能从主 checkout 执行 |
+| `task check [--json]` | worktree 纪律检查：`IN_PROGRESS` 必须有 worktree、`DONE` 不留 worktree、无孤儿、根 checkout 不检出任务分支、各 worktree 的 `core.hooksPath` 互不相同 |
 | `upgrade [目录]` | 骨架一键升级：模板优先，被覆盖的本地改动备份到 `.psycho-frame-upgrade/`，配置增量合并（对象键下探一层补缺），README.md 保留本地；`--dry-run` 只预览，`--exit-code` 让预览有变更时退出码 1；无目录参数时定位 git 仓库根；非骨架项目、框架源码仓库与 linked worktree 中止（升级改的是全仓库共享的根文件，须在根 checkout 原地执行，见 [骨架升级](https://github.com/yondren/yondren-psycho-frame/blob/main/docs/cookbook/skeleton-upgrade.md)） |
 | `self-upgrade` | CLI 自身升级：npm 全局安装自动 `npm install -g` 到最新版，其余安装方式打印对应指引；`--check` 只查询（退出码 0=最新、1=落后） |
 | `init [目录]` | 新项目脚手架，生成知识四层 + AGENTS.md + 配置 |
@@ -44,7 +46,8 @@ pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版�
 | --- | --- | --- |
 | `decisionClasses` | 6 个内置类别 | `decisions/` 类别封闭集合 |
 | `taskStatuses` | 5 个内置状态 | `tasks/` 状态枚举 |
-| `workMode` | `{ plan: "on", confirmAmbiguous: true, fleet: "off", merge: "ask", audience: "expert", engineering: "off" }` | 每次会话行为开关：纪律 `plan` / `confirmAmbiguous` / `fleet` / `merge`，加沟通语域 `audience`（expert/product/novice，决定措辞与解释深度）与工程化 `engineering`（on/off，强制逐项过工程化清单）；语义与耦合矩阵见 [docs/modes.md](https://github.com/yondren/yondren-psycho-frame/blob/main/docs/modes.md)；用 `mode` 命令调整 |
+| `workMode` | `{ plan: "on", confirmAmbiguous: true, fleet: "off", merge: "ask", destroy: "off", audience: "expert", engineering: "off" }` | 每次会话行为开关：纪律 `plan` / `confirmAmbiguous` / `fleet` / `merge` / `destroy`（on 时 `verify` 拉满），加沟通语域 `audience`（expert/product/novice，决定措辞与解释深度）与工程化 `engineering`（on/off，强制逐项过工程化清单）；语义与耦合矩阵见 [docs/modes.md](https://github.com/yondren/yondren-psycho-frame/blob/main/docs/modes.md)；用 `mode` 命令调整 |
+| `destroyChecks` | 无（矩阵为空） | `destroy=on` 时逐条执行的命令数组（本地全量矩阵），任一失败即门禁失败；不得包含 `verify` 自身 |
 | `budgets` | 无（不启用） | `{ 文件路径: 字数上限 }`，CJK 逐字计 1、拉丁/数字串计 1 词，超限门禁失败 |
 | `ignore` | 无 | 相对根的前缀列表，跳过门禁 |
 

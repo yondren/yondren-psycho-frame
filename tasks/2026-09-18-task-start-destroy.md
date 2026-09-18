@@ -19,4 +19,11 @@ worktree 级 hooks 隔离）与 `psycho-frame task check`；`workMode.destroy` �
 
 ## 进度
 
-- [IN_PROGRESS] 2026-09-18 worktree `task-start-destroy` 内实现与验证。
+- [DONE] 2026-09-18 worktree `task-start-destroy` 内实现：`task start` / `task check` 命令、
+  `work-mode.mjs` 第七把开关 `destroy`、`destroy.mjs` 毁灭门禁、`change-scope.mjs` 抽出
+  `collectChangeScope`，CLI 与帮助文本同步。
+- [DONE] 2026-09-18 测试 147 项全过（嵌套环境下同样全过）、`task check` 通过、毁灭模式自审
+  `verify --base main` 全绿（`pnpm test` + `pnpm run doctor`），并当场演示缺 `--base` 与凭据命中
+  两种失败。
+- [DONE] 2026-09-18 文档、模板镜像、预算上调与两条决策记录同步。
+- [IN_PROGRESS] 待合流到 `main`（按 `workMode.merge=ask` 等用户确认）。

@@ -11,10 +11,10 @@
 
 ## 工作模式
 工作模式真源在 [.psycho-frame.json](.psycho-frame.json) 的 `workMode`（`plan`、`confirmAmbiguous`、
-`fleet`、`merge`、`audience`、`engineering`），语义与调整方式见 [docs/modes.md](docs/modes.md)。
+`fleet`、`merge`、`destroy`、`audience`、`engineering`），语义与调整方式见 [docs/modes.md](docs/modes.md)。
 开工前先 `psycho-frame mode` 读一次：`audience` 决定措辞与解释深度，`engineering=on` 时方案阶段
-逐项过工程化清单。对话中可直接要求调整，Agent 用 `psycho-frame mode set` 持久化，`mode reset`
-恢复默认。
+逐项过工程化清单，`destroy=on` 时 `verify` 拉满（须显式 `--base`）。对话中可直接要求调整，Agent 用
+`psycho-frame mode set` 持久化，`mode reset` 恢复默认。
 
 ## 文档门禁
 - 每个事实只有一个家（one home per fact），其余位置只放相对链接。
@@ -25,12 +25,14 @@
 
 ## 任务与并行
 - 任务状态真源在 tasks/（Git 内），开工前先登记任务并置 `IN_PROGRESS`。
-- 每个任务一个 git worktree，并行任务永不共享 checkout；流程见
+- 每个任务一个 git worktree：开工前 `psycho-frame task start <task_key>` 一条命令建分支、worktree、
+  任务卡与 hooks 隔离，`psycho-frame task check` 校验纪律；并行任务永不共享 checkout，流程见
   [docs/cookbook/parallel-worktrees.md](docs/cookbook/parallel-worktrees.md)。
 - 提交信息必须包含 task_key；禁止 raw `--force` 推送，重写已推历史必须租约保护。
 
 ## 验证
-本地只跑与改动面匹配的最窄验证：先 `pnpm change-scope --base <ref>` 取改动面，再选覆盖该面的检查；全量矩阵由 CI 拥有。
+本地只跑与改动面匹配的最窄验证：先 `pnpm change-scope --base <ref>` 取改动面，再选覆盖该面的检查；
+全量矩阵由 CI 拥有，`destroy=on` 时本地全量矩阵改为 `verify` 的硬门禁（[docs/modes.md](docs/modes.md)）。
 
 ## 凭据
 凭据、access token、app secret 禁止写入 Git、报告或聊天摘要。

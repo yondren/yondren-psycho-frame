@@ -21,7 +21,7 @@ test('validateWorkMode：非对象非法', () => {
   assert.equal(validateWorkMode(['on']).length, 1)
   assert.match(
     validateWorkMode('on')[0],
-    /必须为 \{ plan, confirmAmbiguous, fleet, merge, audience, engineering \} 对象/,
+    /必须为 \{ plan, confirmAmbiguous, fleet, merge, destroy, audience, engineering \} 对象/,
   )
 })
 
@@ -32,6 +32,7 @@ test('validateWorkMode：取值封闭', () => {
       confirmAmbiguous: false,
       fleet: 'on',
       merge: 'auto',
+      destroy: 'on',
       audience: 'product',
       engineering: 'on',
     }),
@@ -41,6 +42,7 @@ test('validateWorkMode：取值封闭', () => {
   assert.match(validateWorkMode({ confirmAmbiguous: 'yes' })[0], /workMode.confirmAmbiguous/)
   assert.match(validateWorkMode({ fleet: 'maybe' })[0], /workMode.fleet/)
   assert.match(validateWorkMode({ merge: 'always' })[0], /workMode.merge/)
+  assert.match(validateWorkMode({ destroy: 'yes' })[0], /workMode.destroy/)
   assert.match(validateWorkMode({ audience: 'manager' })[0], /workMode.audience/)
   assert.match(validateWorkMode({ engineering: 'yes' })[0], /workMode.engineering/)
 })
@@ -119,6 +121,15 @@ test('setWorkMode：fleet 非法取值不落盘', () => {
   assert.equal(fs.existsSync(configPath(root)), false)
 })
 
+test('readWorkMode：destroy 缺省补 off，配置值优先', () => {
+  const root = tempDir()
+  write(root, '.psycho-frame.json', JSON.stringify({ workMode: { plan: 'on' } }))
+  assert.equal(readWorkMode(root).destroy, 'off')
+  setWorkMode(root, { destroy: 'on' })
+  assert.equal(readWorkMode(root).destroy, 'on')
+  assert.equal(setWorkMode(root, { destroy: 'maybe' }).ok, false)
+})
+
 test('setWorkMode：写入并可增量合并', () => {
   const root = tempDir()
   const first = setWorkMode(root, { plan: 'off' })
@@ -128,6 +139,7 @@ test('setWorkMode：写入并可增量合并', () => {
     confirmAmbiguous: true,
     fleet: 'off',
     merge: 'ask',
+    destroy: 'off',
     audience: 'expert',
     engineering: 'off',
   })
@@ -138,6 +150,7 @@ test('setWorkMode：写入并可增量合并', () => {
     confirmAmbiguous: false,
     fleet: 'off',
     merge: 'ask',
+    destroy: 'off',
     audience: 'expert',
     engineering: 'off',
   })
@@ -146,6 +159,7 @@ test('setWorkMode：写入并可增量合并', () => {
     confirmAmbiguous: false,
     fleet: 'off',
     merge: 'ask',
+    destroy: 'off',
     audience: 'expert',
     engineering: 'off',
   })
