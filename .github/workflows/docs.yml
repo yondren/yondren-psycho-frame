@@ -26,8 +26,6 @@ jobs:
           cache: pnpm
       - name: Install
         run: pnpm install --frozen-lockfile
-      - name: Docs gate
-        run: node packages/psycho-frame/src/cli.mjs verify
       - name: Build
         env:
           # 规范地址是自定义域名 psycho-frame.yondren.com，Pages 在该域名下以根路径发布

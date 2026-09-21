@@ -8,7 +8,7 @@ import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { verifyDocs } from './verify-docs.mjs'
 import { run as runScope } from './change-scope.mjs'
-import { destroyGate } from './destroy.mjs'
+import { ciGate, destroyGate } from './destroy.mjs'
 import { startTask, checkWorktrees } from './worktree.mjs'
 import { newCookbook, DEFAULT_BUDGET } from './cookbook.mjs'
 import { scaffold, doctor } from './init.mjs'
@@ -49,7 +49,7 @@ const USAGE = `psycho-frame ${version} — 见山处（Yondren）精神力骨架
 用法: psycho-frame <命令> [参数]
 
 命令:
-  verify [--json] [--base <ref>]
+  verify [--json] [--ci] [--base <ref>]
                     文档门禁：链接/锚点、决策格式、任务头字段、字数预算、工作模式取值；
                     destroy=on 时追加毁灭门禁（worktree 纪律、决策记录、task_key、凭据扫描、
                     destroyChecks 全量矩阵），此时 --base 必须显式提供；--json 输出机器可读结果
@@ -91,6 +91,7 @@ const USAGE = `psycho-frame ${version} — 见山处（Yondren）精神力骨架
 示例:
   psycho-frame verify
   psycho-frame verify --base main
+  psycho-frame verify --ci --base origin/main
   psycho-frame task start my-task
   psycho-frame task check
   psycho-frame scope --base main
@@ -125,20 +126,23 @@ const COMMAND_HELP = {
 
 退出码: 0（成功）；2（未知命令名）
 `,
-  verify: `psycho-frame verify [--json] [--base <ref>]
+  verify: `psycho-frame verify [--json] [--ci] [--base <ref>]
 
 文档门禁：链接/锚点、决策结构与格式、任务头字段、字数预算、工作模式取值。
 仓库根 = cwd 的 git toplevel（无 git 时回退 cwd）。--json 输出
-{ formatVersion, ok, count, destroy, checks, errors }。
+{ formatVersion, ok, count, destroy, ci, checks, notes, errors }。
 
 workMode.destroy=on 时追加毁灭门禁：worktree 纪律（psycho-frame task check 的项）、改动面必须
 带决策记录、每个提交含 task_key、凭据扫描，以及 .psycho-frame.json 的 destroyChecks 逐条执行
 （本地全量矩阵）。此时 --base 必须显式提供，且微小改动豁免不适用。
+--ci 同样要求 --base，保留内容/提交/决策检查；本地 worktree 不在 CI 检查，矩阵由 workflow 执行。
+只有 destroy=off 且改动仅 tasks/reports 收尾时可免决策。
 
 示例:
   psycho-frame verify
   psycho-frame verify --json
   psycho-frame verify --base main
+  psycho-frame verify --ci --base origin/main
 
 退出码: 0（通过）；1（门禁失败）；2（参数非法）
 `,
@@ -354,13 +358,14 @@ function singleTargetArg(cmdName) {
 switch (cmd) {
   case 'verify': {
     const json = rest.includes('--json')
+    const ci = rest.includes('--ci')
     const baseAt = rest.indexOf('--base')
     const base = baseAt === -1 ? undefined : rest[baseAt + 1]
     if (baseAt !== -1 && (base === undefined || base.startsWith('-'))) {
       console.error(`psycho-frame verify: --base 需要一个 ref\n\n${USAGE}`)
       process.exit(2)
     }
-    const consumed = new Set(['--json', '--base'])
+    const consumed = new Set(['--json', '--ci', '--base'])
     if (base !== undefined) consumed.add(base)
     const unknown = rest.filter(a => !consumed.has(a))
     if (unknown.length > 0) {
@@ -385,9 +390,9 @@ switch (cmd) {
     }
     let checks = []
     let notes = []
-    if (destroy) {
+    if (destroy || ci) {
       try {
-        const gate = destroyGate(root, { base })
+        const gate = ci ? ciGate(root, { base }) : destroyGate(root, { base })
         errors.push(...gate.errors)
         checks = gate.checks
         notes = gate.notes
@@ -396,13 +401,13 @@ switch (cmd) {
       }
     }
     if (json) {
-      console.log(JSON.stringify({ formatVersion: 1, ok: errors.length === 0, count, destroy, checks, notes, errors }, null, 2))
+      console.log(JSON.stringify({ formatVersion: 1, ok: errors.length === 0, count, destroy, ci, checks, notes, errors }, null, 2))
     } else if (errors.length > 0) {
       console.error(errors.join('\n'))
     } else {
       for (const note of notes) console.log(`[note] ${note}`)
       for (const check of checks) console.log(`[ok] ${check.command}`)
-      const tail = destroy ? `；毁灭模式：矩阵 ${checks.length} 条通过` : ''
+      const tail = ci ? '；CI 内容门禁通过（本地矩阵由 CI jobs 执行）' : destroy ? `；毁灭模式：矩阵 ${checks.length} 条通过` : ''
       console.log(`文档门禁通过：${count} 个 Markdown 文件，链接与锚点可解析，决策结构与格式合规，任务头字段合规，预算达标，工作模式取值合规${tail}`)
     }
     if (errors.length > 0) process.exit(1)

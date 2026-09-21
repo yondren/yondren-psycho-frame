@@ -47,5 +47,5 @@ worktree 与任务分支，默认打开会让远端与本地门禁语义分叉�
 - [docs/development.md](../../../docs/development.md) 的"本地最窄验证 + 全量矩阵归 CI"仍是默认
   分工；毁灭模式只是在该模式下把本地矩阵变成硬要求，不与之冲突。
 - 凭据扫描有假阳性，豁免标记是该模式的一部分，位置写进 [docs/modes.md](../../../docs/modes.md)。
-- 毁灭模式是本地门禁，不进 CI：CI 只有单一 checkout，任务分支必然在根 checkout 检出，接进 CI
-  会恒失败；CI 继续跑自己的 `verify` + `doctor` + `test`。
+- CI 使用显式 verify --ci --base 合同，保留可运行的内容/提交/决策检查，本地 worktree 和矩阵独立；
+  详见 [CI 合同决策](../testing/2026-09-21-ci-onboarding-contract.md)。

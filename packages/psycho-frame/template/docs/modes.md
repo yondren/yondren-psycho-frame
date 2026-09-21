@@ -40,9 +40,11 @@ psycho-frame mode set destroy=on
 psycho-frame verify --base main
 ```
 
-代价是 `verify` 变慢、本地全量矩阵成为提交硬要求；本地最窄验证与 CI 全量矩阵的分工
-（[development.md](development.md)）仍是默认行为。毁灭模式是本地门禁：CI 只有单一 checkout，
-任务分支必然在根 checkout 检出，接进 CI 会恒失败；CI 继续跑自己的 `verify` + `doctor` + `test`。
+CI 显式用 `verify --ci --base <OID>`，不根据环境变量猜测。它检查文档、提交任务绑定、
+改动决策与凭据（含当前受跟踪文件）；任务以卡片识别，不要求本地 worktree 存在。
+`destroy=off` 时仅 tasks/reports 收尾可免决策；`on` 无此豁免。完整历史由 checkout 提供，
+本地 worktree 纪律仍用 task check；destroyChecks 配置照常校验、命令矩阵由 CI jobs 执行。
+首次空仓库以根提交作基线，当前树仍扫描，基线之前的历史不扫描。
 
 ## 沟通语域（audience）
 

@@ -247,3 +247,32 @@ export function destroyGate(root, { base } = {}) {
 
   return { errors, checks, notes }
 }
+
+/** Explicit CI contract: shared content rules, no local worktree or command-matrix execution. */
+export function ciGate(root, { base } = {}) {
+  const errors = [], checks = [], notes = ['CI 合同：worktree 存在性由本地 task check 检查；命令矩阵由 CI jobs 执行']
+  if (!base) return { errors: ['CI 门禁要求显式 --base <ref>，且 checkout 须包含基线历史'], checks, notes }
+  const config = readConfig(root)
+  destroyChecks(config) // Invalid matrix configuration must still be diagnosed.
+  const report = collectChangeScope({ root, base })
+  const files = changedPaths(report)
+  const substantive = files.some(f => !/^(tasks|reports)\//.test(f))
+  if (files.length && (config.workMode?.destroy === 'on' || substantive) && !hasDecision(root, report)) {
+    errors.push('CI 门禁要求改动面新增或更新有效决策；destroy=off 时仅任务/报告收尾可豁免')
+  }
+  const cards = readTaskCards(root).filter(c => ['IN_PROGRESS', 'DONE'].includes(c.status))
+  for (const commit of commitsSince(root, report.resolved.mergeBaseSha)) {
+    const message = commit.subject + '\n' + commit.body
+    if (!cards.some(c => new RegExp('(?:^|[^a-z0-9-])' + c.key + '(?:$|[^a-z0-9-])').test(message))) {
+      errors.push('提交 ' + commit.sha.slice(0, 8) + ' 未绑定 IN_PROGRESS/DONE 任务的 task_key')
+    }
+  }
+  const scan = scanContentSnapshots(root, report)
+  errors.push(...scan.errors)
+  notes.push(...scan.notes)
+  // Full current tree also covers bootstrap baselines without manufacturing a parent commit.
+  const tracked = git(root, ['ls-files', '-z']).split('\0').filter(Boolean)
+  errors.push(...scanSecrets(root, tracked, notes).map(e => '[CI tracked] ' + e))
+  notes.push('CI 额外检查当前全部受 Git 跟踪的文件；基线提交之前的历史不在范围内')
+  return { errors, checks, notes }
+}
