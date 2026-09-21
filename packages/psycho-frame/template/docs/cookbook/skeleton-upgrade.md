@@ -1,8 +1,6 @@
 # 骨架升级（骨架维护模式）
 
-骨架升级改的是仓库根级共享文件（`AGENTS.md`、`docs/`、`.psycho-frame.json`、`package.json` scripts、
-`.gitignore`），语义是整个仓库换一代骨架。因此它是一个**在原地进行的特殊工作模式**：不建 worktree、
-不建任务分支，升级提交直接落在集成分支。
+升级在根 checkout 原地进行，不建 worktree 或任务分支。
 
 ## 进入条件
 
@@ -19,10 +17,15 @@ pnpm verify:docs && pnpm test              # 门禁与测试
 git add -A && git commit -m "chore(skeleton): 骨架升级 [<task_key>]"
 ```
 
-1. 在仓库根 checkout 执行：升级产物是所有 worktree 共享的根文件，linked worktree 内 upgrade 会中止。
+1. linked worktree 内 upgrade 会中止。
 2. 只做"升级 → 门禁 → 提交"，不夹带业务改动；工作区脏时先停并说明。
 3. 仍按 [tasks/README.md](../../tasks/README.md) 登记任务卡，但豁免 worktree 一步（铁律与例外见
    [parallel-worktrees.md](parallel-worktrees.md)）。
+
+## 所有权与恢复
+
+升级先拒绝链接目标、错误节点和非法配置，再写文件。cookbook 索引保留自定义条目与说明。
+备份目录含原内容和 manifest.json；I/O 中断可能部分完成，按清单恢复旧文件、删除新文件后重试。
 
 ## 升级后的并发收束
 

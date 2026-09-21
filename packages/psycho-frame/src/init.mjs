@@ -6,6 +6,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { mergeCookbookIndex } from './template-merge.mjs'
 import { DEFAULT_WORK_MODE } from './work-mode.mjs'
 
 const templateRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'template')
@@ -70,7 +71,8 @@ export function skeletonDrift(root) {
       continue
     }
     const expected = fs.readFileSync(path.join(templateRoot, rel), 'utf8').replaceAll('{{PROJECT_NAME}}', projectName)
-    if (fs.readFileSync(dest, 'utf8') !== expected) drift.push(name)
+    const local = fs.readFileSync(dest, 'utf8')
+    if (name === 'docs/cookbook/README.md' ? mergeCookbookIndex(local, expected) !== local : local !== expected) drift.push(name)
   }
   return { drift, missing }
 }
