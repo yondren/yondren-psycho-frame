@@ -1,4 +1,50 @@
 import { test } from 'node:test'
+
+test('index snapshot is scanned even when worktree has been sanitized', () => {
+  const { wt } = destroyFixture()
+  const token = fakeToken('ghp')
+  write(wt, 'staged.txt', token + '\n')
+  gitIn(wt, 'add', 'staged.txt')
+  write(wt, 'staged.txt', 'safe\n')
+  const result = destroyGate(wt, { base: 'main' })
+  assert.ok(result.errors.some(e => e.includes('[index] staged.txt')))
+  assert.equal(JSON.stringify(result).includes(token), false)
+})
+
+test('intermediate committed blobs are scanned after deletion from HEAD', () => {
+  const { wt } = destroyFixture()
+  write(wt, 'history.txt', fakeToken('ghp'))
+  gitIn(wt, 'add', 'history.txt')
+  gitIn(wt, 'commit', '-qm', 'demo-task add')
+  gitIn(wt, 'rm', 'history.txt')
+  gitIn(wt, 'commit', '-qm', 'demo-task delete')
+  const result = destroyGate(wt, { base: 'main' })
+  assert.ok(result.errors.some(e => e.startsWith('[commit:') && e.includes('history.txt')))
+})
+
+test('deleted decisions and non-Markdown placeholders cannot satisfy the gate', () => {
+  const root = gitFixture()
+  const rel = 'decisions/implemented/testing/2026-01-01-old.md'
+  write(root, rel, decisionText())
+  gitIn(root, 'add', '-A')
+  gitIn(root, 'commit', '-qm', 'baseline decision')
+  startTask({ root, key: 'delete-only', stdout: quiet })
+  const wt = path.join(root, '.worktrees/delete-only')
+  setDestroyChecks(wt, [])
+  fs.unlinkSync(path.join(wt, rel))
+  write(wt, 'decisions/implemented/testing/placeholder.txt', 'not a decision')
+  assert.ok(destroyGate(wt, { base: 'main' }).errors.some(e => e.includes('至少新增或更新')))
+})
+
+test('skipped binary and oversized blobs are explicitly reported', () => {
+  const { wt } = destroyFixture()
+  write(wt, 'binary.dat', Buffer.from([0, 1]))
+  write(wt, 'large.txt', 'x'.repeat(2 * 1024 * 1024 + 1))
+  gitIn(wt, 'add', '-A')
+  const gate = destroyGate(wt, { base: 'main' })
+  assert.ok(gate.notes.some(n => n.includes('[index] binary.dat') && n.includes('未扫描')))
+  assert.ok(gate.notes.some(n => n.includes('[index] large.txt') && n.includes('上限')))
+})
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'

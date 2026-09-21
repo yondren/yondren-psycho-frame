@@ -7,7 +7,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { execFileSync } from 'node:child_process'
 import { readConfig } from './work-mode.mjs'
-import { collectChangeScope, changedPaths } from './change-scope.mjs'
+import { collectChangeScope, changedPaths, diffEntries, commitSnapshots, readBlob } from './change-scope.mjs'
 import { checkWorktrees, findTaskCard, currentBranch, readTaskCards } from './worktree.mjs'
 
 const MAX_GIT_OUTPUT = 16 * 1024 * 1024
@@ -36,30 +36,82 @@ function git(root, args) {
   })
 }
 
-/** 改动面上的文本文件扫凭据；二进制、超大文件与删除的文件跳过。 */
-export function scanSecrets(root, files) {
+/** Scan text without echoing its contents. */
+function scanBuffer(buf, label, notes) {
+  if (buf.includes(0)) { notes.push(label + ': 二进制内容未扫描'); return [] }
   const errors = []
-  for (const rel of files) {
-    const abs = path.join(root, rel)
-    let buf
-    try {
-      buf = fs.readFileSync(abs)
-    } catch {
-      continue
-    }
-    if (buf.length > MAX_SCAN_BYTES || buf.includes(0)) continue
-    const lines = buf.toString('utf8').split('\n')
-    for (let i = 0; i < lines.length; i += 1) {
-      const line = lines[i]
-      if (line.includes(ALLOW_SECRET_MARKER)) continue
-      for (const [name, re] of SECRET_PATTERNS) {
-        if (re.test(line)) {
-          errors.push(`${rel}:${i + 1}: 疑似${name}（内容不回显）；确认是假阳性时在该行加 ${ALLOW_SECRET_MARKER}`)
-        }
-      }
+  for (const [i, line] of buf.toString('utf8').split('\n').entries()) {
+    if (line.includes(ALLOW_SECRET_MARKER)) continue
+    for (const [name, re] of SECRET_PATTERNS) {
+      if (re.test(line)) errors.push(label + ':' + (i + 1) + ': 疑似' + name + '（内容不回显）；确认是假阳性时在该行加 ' + ALLOW_SECRET_MARKER)
     }
   }
   return errors
+}
+
+/** Worktree-only API; callers can collect explicit skip notes. */
+export function scanSecrets(root, files, notes = []) {
+  const errors = []
+  for (const rel of files) {
+    try {
+      const abs = path.join(root, rel), stat = fs.lstatSync(abs)
+      if (!stat.isFile()) { notes.push(rel + ': 非普通工作树文件未扫描'); continue }
+      if (stat.size > MAX_SCAN_BYTES) { notes.push(rel + ': 超过扫描大小上限'); continue }
+      errors.push(...scanBuffer(fs.readFileSync(abs), rel, notes))
+    } catch (e) {
+      if (e.code === 'ENOENT') notes.push(rel + ': 工作树已删除')
+      else errors.push(rel + ': 工作树内容读取失败')
+    }
+  }
+  return errors
+}
+
+export function scanContentSnapshots(root, report) {
+  const errors = [], notes = [], cache = new Map()
+  const index = diffEntries(root, ['--cached', report.resolved.mergeBaseSha])
+  const snapshots = [
+    ...index.filter(e => e.status !== 'D').map(e => ({ ...e, source: 'index' })),
+    ...commitSnapshots(root, report.resolved.mergeBaseSha, report.resolved.headSha),
+  ]
+  for (const entry of snapshots) {
+    const label = '[' + entry.source + '] ' + entry.path
+    if (entry.status === 'U') { errors.push(label + ': 存在未解决冲突'); continue }
+    if (!['100644', '100755', '120000'].includes(entry.mode)) { notes.push(label + ': 非 blob 文件未扫描'); continue }
+    try {
+      if (!cache.has(entry.oid)) {
+        const value = readBlob(root, entry.oid, MAX_SCAN_BYTES), localNotes = []
+        const hits = value.buffer ? scanBuffer(value.buffer, '', localNotes) : []
+        cache.set(entry.oid, { hits, skipped: value.skipped ?? localNotes[0] })
+      }
+      const value = cache.get(entry.oid)
+      if (value.skipped) notes.push(label + ': ' + value.skipped.replace(/^: /, ''))
+      errors.push(...value.hits.map(hit => label + hit))
+    } catch { errors.push(label + ': Git blob 读取失败') }
+  }
+  errors.push(...scanSecrets(root, changedPaths(report), notes).map(e => '[worktree] ' + e))
+  notes.push('内容扫描范围：index、worktree、' + report.resolved.mergeBaseSha.slice(0, 12) + '..' +
+    report.resolved.headSha.slice(0, 12) + ' 提交；' + cache.size + ' 个不同 blob')
+  return { errors, notes }
+}
+
+/** Net changes must retain a real decision, not a deleted path or a non-Markdown placeholder. */
+function hasDecision(root, report) {
+  const entries = diffEntries(root, [report.resolved.mergeBaseSha])
+  const candidates = [...entries.filter(e => ['A', 'M', 'T'].includes(e.status)).map(e => e.path), ...report.paths.untracked]
+  return candidates.some(rel => {
+    if (!/^decisions\/(implemented|proposed)\/[^/]+\/\d{4}-\d{2}-\d{2}-.+\.md$/.test(rel)) return false
+    try {
+      if (!fs.lstatSync(path.join(root, rel)).isFile()) return false
+      const source = fs.readFileSync(path.join(root, rel), 'utf8').replaceAll('\r\n', '\n')
+      const status = rel.split('/')[1]
+      const sections = status === 'implemented'
+        ? ['Problem', 'Decision', 'Alternatives considered', 'Consequences']
+        : ['Problem', 'Proposal', 'Alternatives considered', 'Acceptance criteria', 'Risks']
+      return /^# Agent Note: \S[^\n]*\n\nStatus: (implemented|proposed)\n\n/.test(source)
+        && source.split('\n')[2] === 'Status: ' + status
+        && sections.every(h => source.split('\n').includes('## ' + h))
+    } catch { return false }
+  })
 }
 
 /** 项目声明的毁灭矩阵命令；未配置返回 []，配置非法抛错。 */
@@ -92,19 +144,13 @@ export function runCheck(root, command) {
     })
     return { command, ok: true }
   } catch (e) {
-    const tail = String(e.stdout ?? '').trim().split('\n').slice(-5).join('\n')
-    return { command, ok: false, detail: `退出码 ${String(e.status ?? '?')}${tail === '' ? '' : `；末尾输出：\n${tail}`}` }
+    return { command, ok: false, detail: '退出码 ' + String(e.status ?? '?') }
   }
 }
 
 /** 改动面上 base..HEAD 的非合并提交（[{sha, subject, body}]）；无提交返回 []。 */
 function commitsSince(root, mergeBaseSha) {
-  let raw = ''
-  try {
-    raw = git(root, ['log', '--no-merges', '--format=%H%x1f%s%x1f%b%x1e', `${mergeBaseSha}..HEAD`])
-  } catch {
-    return []
-  }
+  const raw = git(root, ['log', '--no-merges', '--format=%H%x1f%s%x1f%b%x1e', mergeBaseSha + '..HEAD'])
   const out = []
   for (const block of raw.split('\x1e')) {
     if (block.trim() === '') continue
@@ -166,8 +212,7 @@ export function destroyGate(root, { base } = {}) {
   }
   const files = changedPaths(report)
 
-  const records = files.filter(f => /^decisions\/(implemented|proposed)\//.test(f))
-  if (records.length === 0) {
+  if (!hasDecision(root, report)) {
     errors.push(`毁灭模式要求改动面里至少新增或更新一条决策记录（decisions/implemented|proposed/）；当前改动面 ${files.length} 个文件，微小改动豁免在毁灭模式下不适用`)
   }
 
@@ -179,7 +224,9 @@ export function destroyGate(root, { base } = {}) {
     }
   }
 
-  errors.push(...scanSecrets(root, files))
+  const scan = scanContentSnapshots(root, report)
+  errors.push(...scan.errors)
+  notes.push(...scan.notes)
 
   let commands
   try {
