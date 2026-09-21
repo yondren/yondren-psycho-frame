@@ -1,7 +1,7 @@
 # ci-onboarding-contract
 
 - task_key: ci-onboarding-contract
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-21
 - updated: 2026-09-21
 - report: [reports/ci-onboarding-contract.md](../reports/ci-onboarding-contract.md)
@@ -14,4 +14,4 @@
 
 ## 进度
 
-- [IN_PROGRESS] 2026-09-21 worktree `ci-onboarding-contract` 内开工。
+- [DONE] 2026-09-21 已合入 main，worktree 已移除。

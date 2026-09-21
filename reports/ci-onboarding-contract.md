@@ -1,7 +1,7 @@
 # ci-onboarding-contract 执行报告
 
 - task_key: ci-onboarding-contract
-- 状态: IN_PROGRESS
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
@@ -36,7 +36,7 @@ Node 26 与 Node 18.20.0 各 180/180 测试通过；网站构建、完整 tarbal
 
 ## 6. 合流状态
 
-待合入 main。
+已合入 main，worktree 已移除。
 
 ## 7. 还剩什么阻塞
 
