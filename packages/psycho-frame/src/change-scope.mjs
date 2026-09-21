@@ -136,3 +136,36 @@ export function collectChangeScope({ root, base, head = 'HEAD' }) {
 export function changedPaths(report) {
   return [...new Set(Object.values(report.paths).flat())].sort()
 }
+
+// Internal snapshot API; the public scope v1 path schema stays unchanged.
+export function diffEntries(root, args) {
+  const parts = gitBytes(root, ['diff', '--raw', '--no-abbrev', '-z', '--no-renames',
+    '--no-ext-diff', '--no-textconv', ...args, '--']).toString('utf8').split('\0')
+  const entries = []
+  for (let i = 0; i < parts.length - 1; i += 2) {
+    const m = /^:(\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([A-Z])$/.exec(parts[i])
+    if (!m) throw new Error('无法解析 Git diff 内容快照')
+    entries.push({ path: parts[i + 1], mode: m[2], oid: m[4], status: m[5] })
+  }
+  return entries
+}
+
+export function commitSnapshots(root, mergeBaseSha, headSha) {
+  const commits = requireGitText(root, ['rev-list', '--reverse', mergeBaseSha + '..' + headSha], '无法读取提交范围')
+    .trim().split('\n').filter(Boolean)
+  const snapshots = []
+  for (const sha of commits) {
+    const parents = requireGitText(root, ['rev-list', '--parents', '-n', '1', sha], '无法读取父提交').trim().split(' ').slice(1)
+    for (const entry of diffEntries(root, [parents[0] ?? mergeBaseSha, sha])) {
+      if (entry.status !== 'D') snapshots.push({ ...entry, source: 'commit:' + sha.slice(0, 12) })
+    }
+  }
+  return snapshots
+}
+
+export function readBlob(root, oid, limit) {
+  if (!/^[a-f0-9]{40,64}$/.test(oid)) throw new Error('无效 blob OID')
+  const size = Number(requireGitText(root, ['cat-file', '-s', oid], '无法读取 blob 大小'))
+  if (size > limit) return { skipped: '超过扫描大小上限' }
+  return { buffer: gitBytes(root, ['cat-file', 'blob', oid]) }
+}

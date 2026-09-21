@@ -17,9 +17,9 @@ Status: implemented
 1. worktree 纪律（`psycho-frame task check` 的全部项，见 [task start 记录](2026-09-18-task-start-cli.md)）；
 2. 当前改动绑定唯一任务（分支名即 task_key，或全仓库唯一 `IN_PROGRESS`），且状态允许提交；
 3. 必须显式 `--base <父分支 ref>`；
-4. 改动面至少新增或更新一条 decisions/ 记录——微小改动豁免在此不适用；
+4. 改动面须保留有效新增或修改的 decisions/ Markdown 记录，删除不计——微小改动豁免在此不适用；
 5. `base..HEAD` 的每个非合并提交都含 task_key；
-6. 凭据扫描：命中只报路径与行号、不回显内容，行内 `psycho-frame:allow-secret` 豁免假阳性；
+6. 凭据扫描：读取 index、工作树与显式范围内各提交 blob，相同 blob 缓存，跳过项写 notes；命中只报来源、路径与行号，行内 `psycho-frame:allow-secret` 豁免假阳性；
 7. 本地全量矩阵：配置 `destroyChecks` 的命令逐条执行，任一失败即门禁失败（不写 `verify` 自身）。
 
 它只加严，不改动其他六把开关；默认 off 让 CI 与常规提交不受影响。语义的唯一家在

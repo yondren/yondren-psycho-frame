@@ -28,10 +28,10 @@
    `core.hooksPath` 互不相同（[cookbook](cookbook/parallel-worktrees.md)）。
 2. **任务绑定**：当前分支名取成 task_key，或全仓库只留一个 `IN_PROGRESS` 任务卡，且状态允许提交。
 3. **显式基线**：必须 `--base <父分支 ref>`，绝不猜 `origin/<branch>`。
-4. **决策记录**：改动面至少新增或更新一条 `decisions/` 记录——微小改动豁免在此不适用。
+4. **决策记录**：改动面须保留有效新增或修改的记录，删除不计；微小改动也须携带。
 5. **提交绑定**：`base..HEAD` 的每个非合并提交都含 task_key。
-6. **凭据扫描**：改动面内的文本文件不得命中 token 与私钥模式，命中只报位置不回显内容；确认是
-   假阳性时在该行加 `psycho-frame:allow-secret`。
+6. **凭据扫描**：读取 index、工作树及显式范围内各提交 blob，含中间提交；跳过项列于 notes，
+   命中不回显内容；假阳性在该行加 `psycho-frame:allow-secret`。
 7. **本地全量矩阵**：配置 `destroyChecks` 列出的命令逐条执行，任一失败即门禁失败；该字段不写
    `verify` 自身（会自递归）。
 

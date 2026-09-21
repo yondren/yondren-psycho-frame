@@ -25,7 +25,7 @@ pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版�
 
 | 命令 | 作用 |
 | --- | --- |
-| `verify [--json] [--base <ref>]` | 文档门禁：链接/锚点、决策结构与格式、任务头字段、字数预算、工作模式取值；`--json` 输出 `{ formatVersion, ok, count, destroy, checks, errors }`；`workMode.destroy=on` 时追加毁灭门禁（worktree 纪律、决策记录、task_key、凭据扫描、`destroyChecks` 全量矩阵），此时 `--base` 必填，语义见 [工作模式](https://github.com/yondren/yondren-psycho-frame/blob/main/docs/modes.md) |
+| `verify [--json] [--base <ref>]` | 文档门禁：链接/锚点、决策结构与格式、任务头字段、字数预算、工作模式取值；`--json` 输出 `{ formatVersion, ok, count, destroy, checks, notes, errors }`；`workMode.destroy=on` 时追加毁灭门禁（worktree 纪律、决策记录、task_key、凭据扫描、`destroyChecks` 全量矩阵），此时 `--base` 必填，语义见 [工作模式](https://github.com/yondren/yondren-psycho-frame/blob/main/docs/modes.md) |
 | `scope --base <ref>` | 四层改动面报告（committed/staged/unstaged/untracked，JSON） |
 | `mode` | 查看当前工作模式（七把开关）；`mode set <key>=<value>` 设置并写回配置，`mode reset` 恢复默认 |
 | `task start <task_key> [--base <ref>]` | 一条命令开任务 worktree：建分支与 `.worktrees/<task_key>`、登记任务卡与报告占位、隔离 worktree 级 `core.hooksPath`，缺 `.worktrees/` 时补 `.gitignore`；幂等，只能从主 checkout 执行 |

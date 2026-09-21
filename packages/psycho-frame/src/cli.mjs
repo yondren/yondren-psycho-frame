@@ -396,7 +396,7 @@ switch (cmd) {
       }
     }
     if (json) {
-      console.log(JSON.stringify({ formatVersion: 1, ok: errors.length === 0, count, destroy, checks, errors }, null, 2))
+      console.log(JSON.stringify({ formatVersion: 1, ok: errors.length === 0, count, destroy, checks, notes, errors }, null, 2))
     } else if (errors.length > 0) {
       console.error(errors.join('\n'))
     } else {
