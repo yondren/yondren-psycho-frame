@@ -14,9 +14,9 @@ npm install -g yondren-psycho-frame       # 全局安装：任意目录可用，
 pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版本升级
 ```
 
-一个 checkout 只用一种包管理器：门禁与 devDependency 走 pnpm（`pnpm verify:docs` 缺依赖时
-会先自动装好）；agent 沙箱内 npm/npx 写不了 workspace 外缓存（EPERM），混装会让 pnpm 拒绝
-重建 `node_modules`。
+生成后显式运行 `pnpm install`，再执行 `pnpm verify:docs`；脚本不会自动安装依赖。
+模板 pnpm 工作流需要 Node ≥22.13 与 pnpm 11.20.0；单独 CLI 支持 Node ≥18.20。
+一个 checkout 统一使用一种包管理器。
 
 交互终端运行任意命令时静默检查最新版本并在有新版时提示（24h 节流、离线静默、
 非交互终端跳过）；设 `PSYCHO_FRAME_NO_UPDATE_CHECK=1` 关闭。
@@ -25,7 +25,7 @@ pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版�
 
 | 命令 | 作用 |
 | --- | --- |
-| `verify [--json] [--base <ref>]` | 文档门禁：链接/锚点、决策结构与格式、任务头字段、字数预算、工作模式取值；`--json` 输出 `{ formatVersion, ok, count, destroy, checks, notes, errors }`；`workMode.destroy=on` 时追加毁灭门禁（worktree 纪律、决策记录、task_key、凭据扫描、`destroyChecks` 全量矩阵），此时 `--base` 必填，语义见 [工作模式](https://github.com/yondren/yondren-psycho-frame/blob/main/docs/modes.md) |
+| `verify [--json] [--ci] [--base <ref>]` | 文档门禁：链接/锚点、决策结构与格式、任务头字段、字数预算、工作模式取值；`--json` 输出 `{ formatVersion, ok, count, destroy, ci, checks, notes, errors }`；`workMode.destroy=on` 时追加毁灭门禁（worktree 纪律、决策记录、task_key、凭据扫描、`destroyChecks` 全量矩阵），此时 `--base` 必填；`--ci` 显式执行 CI 内容合同、矩阵由 workflow 拥有，语义见 [工作模式](https://github.com/yondren/yondren-psycho-frame/blob/main/docs/modes.md) |
 | `scope --base <ref>` | 四层改动面报告（committed/staged/unstaged/untracked，JSON） |
 | `mode` | 查看当前工作模式（七把开关）；`mode set <key>=<value>` 设置并写回配置，`mode reset` 恢复默认 |
 | `task start <task_key> [--base <ref>]` | 一条命令开任务 worktree：建分支与 `.worktrees/<task_key>`、登记任务卡与报告占位、隔离 worktree 级 `core.hooksPath`，缺 `.worktrees/` 时补 `.gitignore`；幂等，只能从主 checkout 执行 |

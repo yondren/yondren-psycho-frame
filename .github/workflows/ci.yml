@@ -10,20 +10,39 @@ permissions:
 
 jobs:
   gate:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        # 门禁零依赖，无需 pnpm install：20 守消费方 engines 下限，22 对齐开发环境
-        node: [20, 22]
+        os: [ubuntu-latest, macos-latest]
+        node: ['18.20.0', '22']
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      - name: 文档门禁
-        run: node packages/psycho-frame/src/cli.mjs verify
-      - name: 结构漂移
+      - name: Explicit CI content gate
+        shell: bash
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ -z "$BASE" || "$BASE" =~ ^0+$ ]]; then BASE=$(git rev-list --max-parents=0 HEAD | tail -1); fi
+          node packages/psycho-frame/src/cli.mjs verify --ci --base "$BASE"
+      - name: Structure
         run: node packages/psycho-frame/src/cli.mjs doctor
-      - name: 单元测试
+      - name: Core tests (no package manager required)
         run: node --test packages/psycho-frame/test/*.test.mjs
+  distribution:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm docs:build
+      - run: node scripts/smoke-package.mjs

@@ -110,7 +110,8 @@ export function scaffold({ target = '.', mode, cwd = process.cwd(), stdout = con
     stdout('  既有 package.json 缺 verify:docs / change-scope 脚本时，按 docs/development.md 的')
     stdout('  「门禁接入」补齐脚本与 devDependency，再跑 pnpm verify:docs（pnpm 会先装好，不要用 npm）')
   } else {
-    stdout('  pnpm verify:docs        # 零依赖；缺 devDependency 时 pnpm 会自动补齐')
+    stdout('  pnpm install            # 显式安装项目依赖')
+    stdout('  pnpm verify:docs        # 运行文档门禁')
   }
   return { exitCode: 0, written, skipped }
 }

@@ -30,7 +30,7 @@ pnpm verify:docs
 ```
 
 一次校验链接与锚点、决策记录结构、任务头字段、字数预算、工作模式取值；零依赖，仅需
-Node ≥ 18.20，缺 devDependency 时 pnpm 会先装好。全部命令与配置见
+CLI 支持 Node ≥18.20；pnpm 流程需 Node ≥22.13，先显式 pnpm install。全部命令与配置见
 [CLI 与配置](packages/psycho-frame/README.md)，设计取舍见 [核心理念](docs/concepts.md)。
 
 ## 仓库结构

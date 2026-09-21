@@ -1,165 +1,98 @@
-# 使用教程：从安装到第一次提交
+# 使用教程：从空目录到第一次任务收尾
 
-这篇教程用一条完整回路带你上手：给项目装上骨架 → 认识生成的文件 → 跑通门禁 → 登记第一个
-任务 → 写第一条决策记录 → 提交。每步都有可直接复制的命令和预期结果。
+完整教程需要 Node.js ≥22.13、pnpm 11.20.0、Git ≥2.26，并已配置 Git 提交身份。
+核心 CLI 零运行时依赖，单独运行支持 Node ≥18.20；模板的 pnpm 工作流使用上述更高下限。
+下面在一个空的父目录执行。`npm create` 只负责生成文件；`pnpm install` 显式安装项目依赖。
 
-前置条件：Node.js ≥ 18.20 与 Git。骨架零运行时依赖，不需要数据库或构建链。
+## 一次完整回路
 
-想先弄清"为什么要这四层"，读 [核心理念](../concepts.md)；只想查命令，读
-[CLI 与配置](../../packages/psycho-frame/README.md)。
-
-## 1. 给新项目装上骨架
+这个示例添加一条团队说明，走完 Git 基线、隔离任务、决策、验证、提交、合流和状态收尾。
+全部命令由分发冒烟执行，测试只将联网创建/安装替换为当前构建的本地 tarball。
 
 ```sh
 npm create yondren-psycho-frame@latest my-project
 cd my-project
-```
-
-两条命令依次是：生成骨架文件、进入目录。生成的 `package.json` 已带 `verify:docs` /
-`change-scope` / `doctor` 脚本，首次跑门禁时 pnpm 会补上缺失的 devDependency——一个 checkout
-只用 pnpm，混装 npm 的 `node_modules` 会让 pnpm 拒绝重建。`npx yondren-psycho-frame init
-my-project` 与 `npm create` 等价，只是创建入口不同。
-
-**已有项目不要用 init**，用只增不改的 adopt——它遇到同名文件会跳过，绝不覆盖你的东西：
-
-```sh
-cd existing-project
-npx yondren-psycho-frame adopt .
-```
-
-## 2. 认识生成的文件
-
-```text
-my-project/
-├── AGENTS.md            # 每次会话必须在场的常驻命令（AI 按目录自动读到）
-├── .psycho-frame.json   # 门禁配置：决策类别、任务状态、工作模式、字数预算
-├── docs/                # 当前事实
-├── decisions/           # 为什么这样定、放弃了什么
-├── tasks/               # 做到哪一步
-├── reports/             # 每次执行的过程
-├── package.json         # verify:docs / change-scope / doctor 脚本
-└── .gitignore
-```
-
-四个知识目录各管一件事，规则是"每个事实只有一个家"：写进 `docs/` 的是当前事实，写进
-`decisions/` 的是理由，`tasks/` 只存状态，`reports/` 只存过程。别处需要时放链接，不复制。
-
-先花两分钟读生成的 `AGENTS.md` 与 [docs/AGENTS.md](../AGENTS.md)——它们就是这套骨架的使用
-说明书，也是 AI 每次会话会读到的规则。
-
-## 3. 跑通第一次门禁
-
-```sh
+pnpm install
 pnpm verify:docs
-```
+pnpm run doctor
 
-首次运行会先补齐 devDependency，随后刚生成的项目应当直接通过：
+git init -b main
+git add -A
+git commit -m "chore: initialize skeleton [bootstrap]"
+pnpm exec psycho-frame mode
+pnpm exec psycho-frame task start first-task
+cd .worktrees/first-task
 
-```text
-文档门禁通过：N 个 Markdown 文件，链接与锚点可解析，决策结构与格式合规，任务头字段合规，预算达标，工作模式取值合规
-```
-
-不通过时退出码为 1，逐条列出问题。平时本地只跑与改动面匹配的检查，全量矩阵交给 CI。
-
-## 4. 登记第一个任务
-
-任务状态唯一真源是 `tasks/`，开工前先建文件并置 `IN_PROGRESS`。新建
-`tasks/2026-09-13-add-login.md`：
-
-```md
-# 增加登录能力
-
-- task_key: add-login
-- status: IN_PROGRESS
-- created: 2026-09-13
-- updated: 2026-09-13
-- report: [reports/add-login.md](../reports/add-login.md)
-
-## 范围
-
-本轮做什么、明确不做什么。
-```
-
-三条硬约束由门禁校验：
-
-- `task_key` 全小写连字符，且与文件名日期后的部分完全一致。
-- `status` 只能取 `NOT_STARTED` `IN_PROGRESS` `BLOCKED` `DEFERRED` `DONE`。
-- `report` 必须是指向 `reports/<task_key>.md` 的链接，且该文件要存在——**建任务的同时把报告
-  文件也建出来**，哪怕先写骨架。
-
-## 5. 写第一条决策记录
-
-只要一个改动会改变行为、架构、跨文件契约、流程或格式，就在同一提交里写一条决策记录。路径
-`decisions/{生命周期}/{类别}/yyyy-mm-dd-主题.md`，例如
-`decisions/implemented/feature/2026-09-13-session-storage.md`：
-
-```md
-# Agent Note: 会话存储改用服务端 Cookie
+# 编辑生成的任务卡范围，并在报告中记录下面的实施与验证结果。
+mkdir -p decisions/implemented/process
+cat > decisions/implemented/process/2026-09-21-first-task.md <<'DECISION'
+# Agent Note: 团队说明独立成页
 
 Status: implemented
 
 ## Problem
 
-现状是什么、痛点在哪。
+团队需要一个可链接的说明入口。
 
 ## Decision
 
-定了什么，用现在时描述。
+团队约定放在 docs/team.md，由架构地图链接。
 
 ## Alternatives considered
 
-**另一种做法** — 否决：败因是什么。
+**写入常驻指令** — 不采用：增加每轮上下文负担。
 
 ## Consequences
 
-这个决定带来的结果与要遵守的契约。
-```
+团队约定有唯一入口，修改时同步链接。
+DECISION
+printf '# 团队说明\n\n团队在任务 worktree 中协作。\n' > docs/team.md
+printf '\n团队约定见 [团队说明](team.md)。\n' >> docs/architecture.md
+cat > reports/first-task.md <<'REPORT'
+# first-task 执行报告
 
-头三行与章节名是门禁强校验的：第 1 行 `# Agent Note: <标题>`、第 3 行 `Status:`（全文唯一）、
-首个章节必须是 `## Problem`，`implemented/` 还必须齐 `## Decision` `## Alternatives considered`
-`## Consequences`。只改事实不改决策；要反转结论就新写一条并交叉链接。
+增加团队说明与架构入口；决策同步。改动面仅文档，验证命令见教程。
+合流前状态：IN_PROGRESS；执行下列门禁通过后提交，合流后再收尾。
+REPORT
 
-## 6. 提交
-
-```sh
+pnpm change-scope --base main
+pnpm verify:docs
+pnpm exec psycho-frame task check
 git add -A
-git commit -m "feat(add-login): 增加登录能力 [add-login]"
+git commit -m "docs: add team guide [first-task]"
+
+# 用户接受变更后合入 main；这里演示本地合流，不涉及远端。
+cd ../..
+git merge --no-ff first-task -m "merge: team guide [first-task]"
+git worktree remove .worktrees/first-task
+node -e 'const fs=require("node:fs"); const p="tasks/"+fs.readdirSync("tasks").find(n=>n.endsWith("-first-task.md")); fs.writeFileSync(p,fs.readFileSync(p,"utf8").replaceAll("IN_PROGRESS","DONE")); fs.appendFileSync("reports/first-task.md","\n已合入 main，worktree 已移除；状态 DONE。\n")'
+pnpm verify:docs
+pnpm exec psycho-frame task check
+git add tasks reports
+git commit -m "chore: close task [first-task]"
 ```
 
-提交信息必须包含 task_key，这样从 commit 能一路查回任务与报告。
+预期：门禁通过、`git status --short` 无输出、`git worktree list` 只剩 main，任务卡为 DONE。
+生成的任务卡还应填清范围，报告记录实际结果；示例日期可换成当天。七项模式的语义见
+[工作模式](../modes.md)，任务状态字段见 [任务规则](../../tasks/README.md)。
 
-## 7. 日常循环
+## 已有项目与日常检查
 
-定稿后的稳定节奏：
+已有项目使用 `npx yondren-psycho-frame adopt .`，仅补缺失文件；随后显式 `pnpm install`。
+诊断用 `pnpm run doctor`，避免调用 pnpm 自带的同名命令。普通本地门禁用 `pnpm verify:docs`；
+毁灭模式必须提供 `--base`，其规则见 [工作模式](../modes.md)。
+CI 使用 `psycho-frame verify --ci --base <基线 OID>`，完整历史、命令矩阵和网站构建由 workflow 提供。
 
-1. 在 `tasks/` 登记任务并置 `IN_PROGRESS`。
-2. 编码 / 改文档。
-3. `pnpm change-scope --base main` 取改动面，只跑覆盖它的最窄检查（改了产品代码再加跑测试）。
-4. 更新 `reports/<task_key>.md`，非平凡变更补决策记录。
-5. `pnpm verify:docs` 通过后提交（含 task_key），把任务置 `DONE`。
+## 常见失败
 
-另外两条常备命令：
+| 输出 | 处理 |
+| --- | --- |
+| 找不到 psycho-frame | 在项目根执行 pnpm install |
+| 无法解析 base | 先提交 Git 基线，CI checkout 使用完整历史 |
+| 链接目标/锚点不存在 | 修复相对路径或标题 |
+| 预算超限 | 精简或搬到其归属文档，不默认提预算 |
+| 任务未绑定 worktree | 使用 task start 创建并进入返回路径 |
+| DONE key 不能复用 | 新建任务 key，保留历史状态 |
 
-```sh
-pnpm doctor                        # 结构漂移检查：必需文件、配置、脚本
-pnpm exec psycho-frame upgrade --dry-run   # 预览骨架升级（模板优先，本地改动自动备份）
-```
-
-## 8. 门禁报错怎么读
-
-| 报错 | 含义 | 修法 |
-| --- | --- | --- |
-| `链接目标不存在` | 相对链接指向了不存在的文件 | 改链接或补文件；路径必须真实可解析 |
-| `链接锚点不存在` | `#标题` 与实际标题对不上 | 核对标题 slug |
-| `task_key … 与文件名后缀 … 不一致` | 头字段和文件名不同 | 统一两者 |
-| `缺少头字段 - report:` | 任务没写报告链接 | 补 `- report:` 行 |
-| `缺章节 ## Decision` | 决策记录结构不全 | 补齐该类别的必备章节 |
-| `超出预算 N` | 常驻文档太长 | 先搬迁到归属层、再精简，最后才提预算 |
-| `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` | `node_modules` 由 npm/yarn 建，pnpm 在非交互环境拒绝重建 | 删掉 `node_modules` 后只用 pnpm 装；CI 里设 `CI=true` |
-
-## 接下来
-
-- [核心理念](../concepts.md)——为什么这样分层，以及门禁和工作模式的设计取舍。
-- [CLI 与配置](../../packages/psycho-frame/README.md)——全部命令与 `.psycho-frame.json` 字段。
-- [任务状态真源](../../tasks/README.md) / [决策记录](../../decisions/README.md) /
-  [执行报告](../../reports/README.md)——三类文件的完整规则。
+完整命令见 [CLI 与配置](../../packages/psycho-frame/README.md)，升级流程见
+[骨架升级](skeleton-upgrade.md)，知识分层见 [核心理念](../concepts.md)。

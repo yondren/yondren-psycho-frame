@@ -12,11 +12,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4   # 版本取 package.json 的 packageManager
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       # 模板不附带 lockfile，首次运行允许解析
       - run: pnpm install --no-frozen-lockfile
-      - run: pnpm verify:docs
+      - name: Explicit CI content gate
+        shell: bash
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ -z "$BASE" || "$BASE" =~ ^0+$ ]]; then BASE=$(git rev-list --max-parents=0 HEAD | tail -1); fi
+          pnpm exec psycho-frame verify --ci --base "$BASE"
       - run: pnpm run doctor

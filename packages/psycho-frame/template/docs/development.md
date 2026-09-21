@@ -2,10 +2,10 @@
 
 ## 环境
 
-- Node.js ≥ 18.20，Git ≥ 2.26（worktree 级配置需要）；pnpm 由 `packageManager` 锁定，
+- Node.js ≥22.13（单独 CLI ≥18.20），Git ≥ 2.26（worktree 级配置需要）；pnpm 由 `packageManager` 锁定，
   首次用 `corepack enable` 激活。
 - 门禁由 [yondren-psycho-frame](https://www.npmjs.com/package/yondren-psycho-frame)
-  提供，零依赖；`pnpm verify:docs` 缺 devDependency 时会先自动装好，无需手动 install。
+  提供，零依赖；先 `pnpm install` 再 `pnpm verify:docs`；pnpm 11.20 需 Node ≥22.13。
 - 一个 checkout 只用 pnpm：npm/yarn 生成的 `node_modules` 会被 pnpm 判为异类，而 agent
   沙箱写不了 `~/.npm` 缓存（EPERM），混用只会卡住门禁。
 

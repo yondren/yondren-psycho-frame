@@ -40,7 +40,7 @@
 自动备份、配置增量合并），在根 checkout 原地进行、不建 worktree
 （[cookbook/skeleton-upgrade.md](cookbook/skeleton-upgrade.md)），骨架偏差由 init/adopt/upgrade 测试
 看护（[packages/psycho-frame/test/](../packages/psycho-frame/test/)）。
-CI：门禁、doctor、测试在 Node 20/22 上跑，PR 与 main 都触发
+CI：门禁、doctor、测试在 Node 18.20/22 上跑，Linux/macOS、PR 与 main 都触发；PR 加跑网站构建与 tarball 教程冒烟
 （[.github/workflows/ci.yml](../.github/workflows/ci.yml)）。
 
 ## 包发布
