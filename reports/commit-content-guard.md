@@ -1,7 +1,7 @@
 # commit-content-guard 执行报告
 
 - task_key: commit-content-guard
-- 状态: IN_PROGRESS
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
@@ -26,7 +26,7 @@ scope --base main；node --test packages/psycho-frame/test/*.test.mjs；补充�
 
 ## 6. 合流状态
 
-待合流 main，用户已授权按计划实施和收尾；无远端推送。
+已合流 main，worktree 与任务分支已清理；无远端推送。
 
 ## 7. 还剩什么阻塞
 

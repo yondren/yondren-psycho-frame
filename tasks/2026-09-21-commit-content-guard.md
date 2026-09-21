@@ -1,7 +1,7 @@
 # 提交内容快照与决策门禁
 
 - task_key: commit-content-guard
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-21
 - updated: 2026-09-21
 - report: [reports/commit-content-guard.md](../reports/commit-content-guard.md)
@@ -15,3 +15,5 @@
 ## 进度
 
 - [IN_PROGRESS] 2026-09-21 worktree `commit-content-guard` 内开工。
+
+- [DONE] 验证后合入 main，worktree 和分支已清理。
