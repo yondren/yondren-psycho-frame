@@ -17,11 +17,12 @@ psycho-frame task start <task_key> [--base <ref>]
 
 一条命令完成：建分支与 `.worktrees/<task_key>`、登记 `tasks/<日期>-<task_key>.md`（`IN_PROGRESS`）
 与 `reports/<task_key>.md` 占位、设该 worktree 的 `core.hooksPath` 隔离、缺 `.worktrees/` 时补
-`.gitignore`。`--base` 缺省 main / master，只能从主 checkout 执行；已存在且分支正确时幂等跳过。
+`.gitignore`。`--base` 缺省 main / master，只能从主 checkout 执行；已有 IN_PROGRESS 任务可恢复，DONE 拒绝重开。
 
 hooks 隔离的理由：linked worktree 共享 hooks 目录，不隔离会互相覆盖（见 DSH 官方
 [worktree-local-lefthook 决策记录](https://github.com/deepseek-ai/deepseek-harness/blob/master/.agents/notes/implemented/process/2026-07-27-worktree-local-lefthook.md)）；
-骨架不内置 installer，`task start` 只设路径。
+`task start` 在隔离目录写转发 hook，保留原来源、参数、stdin 和退出码；不覆盖自定义 hook。
+重复执行会补报告与缺失转发项；未知改动拒绝覆盖，修复后重试。
 
 ## 2. 依赖供给
 

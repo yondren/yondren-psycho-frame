@@ -153,6 +153,7 @@ export function checkWorktrees(root) {
     if (card.status === 'DONE') {
       issues.push(`${WORKTREE_DIR}/${key}: 任务 ${key} 已 DONE 仍留着 worktree；合流后 git worktree remove ${WORKTREE_DIR}/${key}`)
     }
+    if (w.branch !== key) issues.push(`${WORKTREE_DIR}/${key}: worktree 分支与 task_key 不一致`)
   }
 
   for (const card of cards) {
@@ -177,6 +178,18 @@ export function checkWorktrees(root) {
       continue
     }
     const prev = seen.get(hooks)
+    const manifest = path.join(hooks, 'psycho-frame.json')
+    if (fs.existsSync(manifest)) {
+      try {
+        const { source } = JSON.parse(fs.readFileSync(manifest, 'utf8'))
+        for (const name of HOOK_NAMES) {
+          const file = path.join(hooks, name)
+          if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== hookWrapper(path.join(source, name))) {
+            issues.push(`${WORKTREE_DIR}/${key}: hooks 转发缺失或被修改：${name}`)
+          }
+        }
+      } catch { issues.push(`${WORKTREE_DIR}/${key}: hooks 转发清单损坏`) }
+    }
     if (prev !== undefined) {
       issues.push(`${WORKTREE_DIR}/${key}: core.hooksPath 与 ${prev} 相同（${hooks}），未隔离`)
     } else {
@@ -263,87 +276,120 @@ export function isLinkedWorktree(root) {
   }
 }
 
-/**
- * 一条命令开任务 worktree：建分支与 .worktrees/<key>、登记任务卡与报告占位、隔离 worktree 级 hooks。
- * 幂等：worktree 已存在且分支正确时直接返回 ok；参数非法由调用方先行拦截。
- */
-export function startTask({
-  root,
-  key,
-  base,
-  title = key,
-  date = new Date().toISOString().slice(0, 10),
-  stdout = console.log,
-}) {
-  const fail = message => ({ ok: false, exitCode: 1, errors: [message] })
-  if (!TASK_KEY_RE.test(key)) {
-    return { ok: false, exitCode: 2, errors: [`task_key "${key}" 必须全小写连字符（如 destroy-gate）`] }
-  }
-  if (gitRoot(root) === null) return fail(`${root} 不是 git 仓库`)
-  if (isLinkedWorktree(root)) {
-    const mainPath = listWorktrees(root)[0]?.path ?? root
-    return fail(`${root} 是 linked worktree；任务 worktree 只能从主 checkout 开：cd ${mainPath} 后重跑`)
-  }
-  if (!fs.existsSync(path.join(root, 'tasks'))) {
-    return fail(`${root} 没有 tasks/ 目录；先 psycho-frame init 或 adopt 接入骨架`)
-  }
+const HOOK_NAMES = [
+  'applypatch-msg', 'pre-applypatch', 'post-applypatch', 'pre-commit', 'pre-merge-commit',
+  'prepare-commit-msg', 'commit-msg', 'post-commit', 'pre-rebase', 'post-checkout', 'post-merge',
+  'pre-push', 'pre-receive', 'update', 'proc-receive', 'post-receive', 'post-update',
+  'reference-transaction', 'push-to-checkout', 'pre-auto-gc', 'post-rewrite', 'sendemail-validate',
+  'fsmonitor-watchman', 'p4-changelist', 'p4-prepare-changelist', 'p4-post-changelist', 'p4-pre-submit',
+]
+const shellQuote = value => "'" + value.replaceAll("'", "'\\''") + "'"
+const hookWrapper = target => '#!/bin/sh\n# psycho-frame forwarding hook\nif [ -x ' +
+  shellQuote(target.split(path.sep).join('/')) + ' ]; then\n  exec ' +
+  shellQuote(target.split(path.sep).join('/')) + ' "$@"\nfi\nexit 0\n'
 
-  const worktreePath = path.join(root, WORKTREE_DIR, key)
-  const existing = listWorktrees(root).find(w => samePath(w.path, worktreePath))
-  if (existing !== undefined) {
-    if (existing.branch !== key) {
-      return fail(`${WORKTREE_DIR}/${key} 已存在但检出的是 ${String(existing.branch)}；换一个 task_key 或先清理`)
-    }
-    stdout(`[skip] ${WORKTREE_DIR}/${key} 已存在（分支 ${key}）`)
-    return { ok: true, exitCode: 0, worktree: worktreePath, branch: key, base: null, created: false }
-  }
-
-  const resolvedBase = base ?? integrationBranch(root)
-  if (resolvedBase === null) return fail('找不到 main/master 作为基线；用 --base <ref> 显式指定')
-  if (git(root, ['rev-parse', '--verify', '--quiet', `${resolvedBase}^{commit}`], { allowFail: true }) === null) {
-    return fail(`--base ${resolvedBase} 无法解析为 commit`)
-  }
-  if (git(root, ['rev-parse', '--verify', '--quiet', `refs/heads/${key}`], { allowFail: true }) !== null) {
-    return fail(`分支 ${key} 已存在但没有对应 worktree；先 git branch -D ${key} 或换 task_key`)
-  }
-
-  const ignore = ensureWorktreesIgnored(root, { write: true })
-  if (ignore.changed) stdout(`[write] .gitignore += ${WORKTREE_DIR}/`)
-
-  try {
-    git(root, ['worktree', 'add', path.join(WORKTREE_DIR, key), '-b', key, resolvedBase])
-  } catch (e) {
-    return fail(e.message)
-  }
-  stdout(`[write] ${WORKTREE_DIR}/${key} ← 分支 ${key}（基线 ${resolvedBase}）`)
-
-  git(root, ['config', 'extensions.worktreeConfig', 'true'])
+function prepareHooks(root, worktreePath, key) {
   const gitDir = path.resolve(worktreePath, git(worktreePath, ['rev-parse', '--git-dir']))
-  const hooksDir = path.join(gitDir, `hooks-${key}`)
+  const hooksDir = path.join(gitDir, 'hooks-' + key)
+  const source = hooksPathOf(root) ?? path.resolve(root, git(root, ['rev-parse', '--git-common-dir']), 'hooks')
+  if (samePath(source, hooksDir)) throw new Error('hooks 转发循环；请先修复主 checkout 的 core.hooksPath')
+  if (fs.existsSync(source) && !fs.statSync(source).isDirectory()) throw new Error('既有 hooks 路径不是目录')
+  git(root, ['config', 'extensions.worktreeConfig', 'true'])
+  const own = git(worktreePath, ['config', '--worktree', '--get', 'core.hooksPath'], { allowFail: true })
+  if (own && !samePath(path.resolve(worktreePath, own), hooksDir)) {
+    throw new Error('已有自定义 worktree hooks，拒绝覆盖；请先迁移到转发链或手工完成隔离')
+  }
+  const manifest = path.join(hooksDir, 'psycho-frame.json')
+  if (fs.existsSync(manifest)) {
+    const saved = JSON.parse(fs.readFileSync(manifest, 'utf8'))
+    if (saved.source !== source) throw new Error('主 hooks 来源变化，请审查并迁移 hooks 转发链')
+  }
+  // Preflight the whole directory: never overwrite user-installed hook implementations.
+  for (const name of HOOK_NAMES) {
+    const dest = path.join(hooksDir, name)
+    if (fs.existsSync(dest) && fs.readFileSync(dest, 'utf8') !== hookWrapper(path.join(source, name))) {
+      throw new Error('隔离 hooks 中有自定义内容，拒绝覆盖：' + name)
+    }
+  }
   fs.mkdirSync(hooksDir, { recursive: true })
+  for (const name of HOOK_NAMES) {
+    const dest = path.join(hooksDir, name)
+    fs.writeFileSync(dest, hookWrapper(path.join(source, name)), { mode: 0o755 })
+    fs.chmodSync(dest, 0o755)
+  }
+  fs.writeFileSync(manifest, JSON.stringify({ source }) + '\n')
   git(worktreePath, ['config', '--worktree', 'core.hooksPath', hooksDir])
-  stdout(`[write] ${WORKTREE_DIR}/${key} core.hooksPath = ${hooksDir}`)
+  return hooksDir
+}
 
-  const cardRel = `tasks/${date}-${key}.md`
-  let wroteCard = false
-  if (findTaskCard(worktreePath, key) === null) {
-    const cardPath = path.join(worktreePath, cardRel)
-    fs.mkdirSync(path.dirname(cardPath), { recursive: true })
-    fs.writeFileSync(cardPath, TASK_CARD_SKELETON({ key, title, date }), 'utf8')
-    wroteCard = true
-    stdout(`[write] ${cardRel}`)
+function taskStateError(root, key) {
+  const cards = readTaskCards(root).filter(c => c.key === key)
+  if (cards.length > 1) return '同一 task_key 存在多张卡片，请先消除歧义'
+  if (cards.length && cards[0].status !== 'IN_PROGRESS') {
+    return '任务 ' + key + ' 状态为 ' + cards[0].status + '；start 不隐式重开任务，请使用新 key 或先明确恢复任务状态'
   }
-  const reportRel = `reports/${key}.md`
-  if (!fs.existsSync(path.join(worktreePath, reportRel))) {
-    fs.mkdirSync(path.join(worktreePath, 'reports'), { recursive: true })
-    fs.writeFileSync(path.join(worktreePath, reportRel), REPORT_SKELETON(key), 'utf8')
-    stdout(`[write] ${reportRel}`)
-  }
+  if (cards.length && !cards[0].text.includes('- task_key: ' + key + '\n')) return '任务头字段与 key 不一致'
+  return null
+}
 
-  stdout('')
-  stdout(`下一步：cd ${WORKTREE_DIR}/${key}`)
-  if (wroteCard) stdout(`  1. 补齐 ${cardRel} 的「范围」，再开工（任务状态真源在 tasks/）。`)
-  stdout(`  2. 开工前跑一次 psycho-frame mode：destroy=on 时 verify 需要显式 --base。`)
-  stdout(`  3. 提交信息必须含 ${key}；合流按 workMode.merge，合流后 git worktree remove ${WORKTREE_DIR}/${key}。`)
-  return { ok: true, exitCode: 0, worktree: worktreePath, branch: key, base: resolvedBase, created: true, card: cardRel }
+/** Create or repair an unfinished task; success guarantees its local postconditions. */
+export function startTask({ root, key, base, title = key,
+  date = new Date().toISOString().slice(0, 10), stdout = console.log }) {
+  const fail = message => ({ ok: false, exitCode: 1, errors: [message] })
+  if (!TASK_KEY_RE.test(key)) return { ok: false, exitCode: 2, errors: ['task_key 必须全小写连字符'] }
+  if (gitRoot(root) === null) return fail(root + ' 不是 git 仓库')
+  if (isLinkedWorktree(root)) return fail('linked worktree 内不能开任务；请从主 checkout 执行')
+  if (!fs.existsSync(path.join(root, 'tasks'))) return fail('没有 tasks/ 目录；先 init 或 adopt')
+  try {
+    const stateError = taskStateError(root, key)
+    if (stateError) return fail(stateError)
+    const worktreePath = path.join(root, WORKTREE_DIR, key)
+    const existing = listWorktrees(root).find(w => samePath(w.path, worktreePath))
+    if (existing && existing.branch !== key) return fail('worktree 已存在但分支不同，请先处理')
+    if (existing) {
+      const error = taskStateError(worktreePath, key)
+      if (error) return fail(error)
+    }
+    const resolvedBase = base ?? integrationBranch(root)
+    if (!existing) {
+      if (!resolvedBase || git(root, ['rev-parse', '--verify', '--end-of-options', resolvedBase + '^{commit}'], { allowFail: true }) === null) {
+        return fail('--base 无法解析为 commit；显式提供有效基线')
+      }
+      if (git(root, ['rev-parse', '--verify', 'refs/heads/' + key], { allowFail: true }) !== null) {
+        return fail('同名分支已存在，请选择新 task_key 或审查后恢复其 worktree')
+      }
+      // Read the baseline card too: a custom --base can contain a completed task absent from main.
+      const files = git(root, ['ls-tree', '-r', '--name-only', resolvedBase, '--', 'tasks']).split('\n')
+      for (const file of files.filter(f => f.endsWith('-' + key + '.md'))) {
+        const text = git(root, ['show', resolvedBase + ':' + file])
+        if (!/^- status: IN_PROGRESS$/m.test(text)) return fail('基线包含非 IN_PROGRESS 同名任务，拒绝创建')
+      }
+      git(root, ['worktree', 'add', path.join(WORKTREE_DIR, key), '-b', key, resolvedBase])
+    }
+    ensureWorktreesIgnored(root, { write: true })
+    ensureWorktreesIgnored(worktreePath, { write: true })
+    const hooksDir = prepareHooks(root, worktreePath, key)
+    const cardRel = 'tasks/' + date + '-' + key + '.md'
+    if (!findTaskCard(worktreePath, key)) {
+      // Preserve a root-local task card not yet present on the baseline.
+      const original = findTaskCard(root, key)
+      fs.mkdirSync(path.join(worktreePath, 'tasks'), { recursive: true })
+      fs.writeFileSync(path.join(worktreePath, original?.file ?? cardRel),
+        original?.text ?? TASK_CARD_SKELETON({ key, title: title.replace(/[\r\n]+/g, ' '), date }))
+    }
+    const reportRel = 'reports/' + key + '.md'
+    if (!fs.existsSync(path.join(worktreePath, reportRel))) {
+      fs.mkdirSync(path.join(worktreePath, 'reports'), { recursive: true })
+      fs.writeFileSync(path.join(worktreePath, reportRel), REPORT_SKELETON(key))
+    }
+    if (!fs.statSync(path.join(worktreePath, reportRel)).isFile()) return fail('报告目标不是普通文件')
+    const card = findTaskCard(worktreePath, key)
+    if (!card?.text.includes('](../reports/' + key + '.md)')) return fail('任务报告链接不合法，请修复后重试')
+    stdout('[ok] ' + WORKTREE_DIR + '/' + key + '；hooks 转发至原来源，隔离目录：' + hooksDir)
+    stdout('下一步：cd ' + WORKTREE_DIR + '/' + key + '；补齐任务范围，提交含 ' + key)
+    return { ok: true, exitCode: 0, worktree: worktreePath, branch: key,
+      base: existing ? null : resolvedBase, created: !existing, card: card.file }
+  } catch (e) {
+    return fail(e.message + '；若 worktree 已创建，可修复后以相同 task_key 重试，不会覆盖已有任务内容')
+  }
 }
