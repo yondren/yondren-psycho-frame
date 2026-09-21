@@ -2,6 +2,8 @@
 
 - [门禁与升级边界加固提案](proposed/testing/2026-09-21-project-assessment-hardening.md)。
 
+- [CLI 路径与版本合同](implemented/bug-fix/2026-09-21-cli-contract-alignment.md)。
+
 每个"为什么这么定 + 放弃了什么"的事实记一条。路径编码
 `{生命周期}/{类别}/yyyy-mm-dd-主题.md`，随状态变化在生命周期目录间移动。
 交叉引用只用相对 Markdown 链接，不用纯文本或编号，门禁机械校验。

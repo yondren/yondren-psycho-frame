@@ -79,7 +79,7 @@ const USAGE = `psycho-frame ${version} — 见山处（Yondren）精神力骨架
                     其余安装方式打印对应指引；加 --check 只查询（退出码 0=最新、1=落后）
   init [目录]       新项目脚手架（目标目录须为空，默认 .）
   adopt [目录]      旧项目采纳：只增不改，绝不覆盖既有文件（默认 .）
-  doctor [目录]     结构漂移检查（默认 .）
+  doctor [目录]     结构漂移检查（默认 Git 根，无 Git 时为 .）
   help [命令]       无参数打印本用法总览；带命令名打印该命令专属帮助
   version           输出版本号（等价 --version / -v）
 
@@ -624,7 +624,8 @@ switch (cmd) {
     break
   }
   case 'doctor': {
-    const r = doctor({ target: singleTargetArg(cmd) })
+    const target = singleTargetArg(cmd)
+    const r = doctor({ target, ...(rest.length ? {} : { cwd: resolveRoot() }) })
     if (r.exitCode !== 0) process.exit(r.exitCode)
     break
   }

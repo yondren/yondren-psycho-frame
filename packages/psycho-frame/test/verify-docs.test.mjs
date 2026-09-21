@@ -234,3 +234,21 @@ test('count 返回扫描到的 Markdown 文件数', () => {
   assert.equal(verifyDocs(root).count, 5)
   assert.equal(path.basename(root).startsWith('pf-test-'), true)
 })
+
+test('Unix absolute links fail in repository docs, site roots require explicit ownership', () => {
+  const root = fixtureRepo({ config: JSON.stringify({ webRoots: ['website/src/'] }) })
+  write(root, 'docs/note.md', '[absolute](/tmp/notes.md) [encoded](%2Ftmp%2Fnotes.md)\n')
+  write(root, 'website/src/guide.md', '[route](/guide/intro)\n')
+  const errors = errs(root)
+  assert.equal(errors.filter(e => e.includes('不可移植')).length, 2)
+  assert.equal(errors.some(e => e.includes('website/')), false)
+})
+
+test('Markdown matching fences, complex destinations and duplicate anchors', () => {
+  const root = fixtureRepo()
+  write(root, 'docs/name (draft).md', '# Title\n\n# Title\n')
+  write(root, 'docs/note.md', '````md\n```\n[ignored](missing.md)\n~~~~\n````\n[ok](<name (draft).md#title-1> "title")\n[ok](name%20(draft).md#title)\n[ref][n]\n[n]: <name (draft).md#title>\n')
+  assert.deepEqual(errs(root), [])
+  write(root, 'docs/note.md', '[no](<name (draft).md#absent>)\n')
+  has(errs(root), '锚点不存在')
+})

@@ -299,3 +299,14 @@ test('cookbook CLI：new 落盘后门禁仍通过，重复执行幂等', () => {
   const after = fs.readFileSync(path.join(root, 'docs/cookbook/README.md'), 'utf8')
   assert.equal(after.split('\n').filter(l => l.includes('](demo-flow.md)')).length, 1)
 })
+
+test('doctor CLI defaults to Git root but honors an explicit target', () => {
+  const cwd = tempDir()
+  scaffold({ cwd, target: 'proj', mode: 'init', stdout: noop, stderr: noop })
+  const root = path.join(cwd, 'proj')
+  gitIn(root, 'init', '-q')
+  const nested = path.join(root, 'docs')
+  assert.equal(runCli(nested, ['doctor']).status, 0)
+  assert.equal(runCli(nested, ['doctor', '.']).status, 1)
+  assert.equal(runCli(nested, ['doctor', '..']).status, 0)
+})

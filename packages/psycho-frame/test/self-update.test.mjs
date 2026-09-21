@@ -16,12 +16,12 @@ import { tempDir, noop } from './helpers.mjs'
 
 const DAY = 24 * 60 * 60 * 1000
 
-test('compareVersions：数字段比较，忽略 prerelease/build', () => {
+test('compareVersions：严格 SemVer 比较，忽略 build', () => {
   assert.equal(compareVersions('1.0.0', '1.0.0'), 0)
-  assert.equal(compareVersions('1.2', '1.2.0'), 0)
+  assert.throws(() => compareVersions('1.2', '1.2.0'))
   assert.equal(compareVersions('1.0.1', '1.0.0'), 1)
   assert.equal(compareVersions('0.9.9', '1.0.0'), -1)
-  assert.equal(compareVersions('1.0.0-rc.1', '1.0.0'), 0)
+  assert.equal(compareVersions('1.0.0-rc.1', '1.0.0'), -1)
   assert.equal(compareVersions('2.0.0+build', '1.9.9'), 1)
 })
 
