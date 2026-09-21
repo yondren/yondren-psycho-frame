@@ -1,285 +1,250 @@
 #!/usr/bin/env node
-// release.mjs：yondren-psycho-frame 两包锁步发布脚本（零依赖，Node ≥ 18.20）。
-// 用法：pnpm release <major|minor|patch|premajor|preminor|prepatch|prerelease|X.Y.Z>
-//              [--prepare] [--preview] [--publish] [--push] [--task-key=<key>]
-// 步骤：预检 → pnpm install → bump 两包 + 模板 pin → verify/doctor → pack 预检
-//      → commit + tag →（--publish）按序双发 →（--push）推 origin main + tag 与 codeup 镜像。
-// 默认（或 --prepare）只做本地 bump/commit/tag，结尾打印发布交接命令；--preview 完全只读。
-// --prepare 与 --publish/--push 互斥，供 pnpm release:prepare 入口使用。
-import { parseSemver, compareSemver, bumpVersion } from '../packages/psycho-frame/src/semver.mjs'
+// Local, resumable two-package release. No network mutation without --publish / --push.
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
+import { createHash } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
+import { pathToFileURL } from 'node:url'
+import { parseSemver, compareSemver, bumpVersion } from '../packages/psycho-frame/src/semver.mjs'
+import { verifyDocs } from '../packages/psycho-frame/src/verify-docs.mjs'
+import { collectChangeScope } from '../packages/psycho-frame/src/change-scope.mjs'
+import { scanContentSnapshots, destroyChecks } from '../packages/psycho-frame/src/destroy.mjs'
+import { readConfig } from '../packages/psycho-frame/src/work-mode.mjs'
+import { readTaskCards } from '../packages/psycho-frame/src/worktree.mjs'
 
-const CORE = 'yondren-psycho-frame'
-const SHIM = 'create-yondren-psycho-frame'
-const CORE_PKG = path.join('packages', 'psycho-frame', 'package.json')
-const SHIM_PKG = path.join('packages', 'create-yondren-psycho-frame', 'package.json')
-const TEMPLATE_PKG = path.join('packages', 'psycho-frame', 'template', 'package.json')
-const BUMP_TYPES = ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease']
+const CORE = 'yondren-psycho-frame', SHIM = 'create-yondren-psycho-frame'
+const FILES = ['packages/psycho-frame/package.json', 'packages/create-yondren-psycho-frame/package.json', 'packages/psycho-frame/template/package.json']
+const BUMPS = ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease']
+const USAGE = `pnpm release <bump> --task-key=<key> [--prepare|--preview|--publish] [--push]
+pnpm release --resume=<version> [--publish] [--push]
+准备：校验远端精确基线，bump、测试、pack、受测 tarball、commit/tag。
+恢复：核对 HEAD/tag/远端/摘要，跳过内容相同的已发布包，仅补发缺失包。
+默认不发布不推送；--push 必须与 --publish 同用。状态保存在 Git common-dir/releases/<version>/。`
+const integrity = file => 'sha512-' + createHash('sha512').update(fs.readFileSync(file)).digest('base64')
+const assert = (value, message) => { if (!value) throw new Error(message) }
 
-const USAGE = `用法: pnpm release <bump> [--prepare] [--preview] [--publish] [--push] [--task-key=<key>]
-
-  bump      major | minor | patch | premajor | preminor | prepatch | prerelease | X.Y.Z
-  --prepare 只准备：bump/门禁/pack 预检/commit/tag，结尾打印发布命令（与 --publish/--push 互斥）
-  --preview 只读预览：打印将写入的版本与步骤，不落盘不执行
-  --publish 实际 npm 发布两包（默认跳过，仅本地 bump/commit/tag）
-  --push    推 origin main 与 tag、codeup 镜像（默认跳过；推送前校验 origin OID 未变）
-  --task-key=<key> release commit 的 task_key，须已在 tasks/ 登记（默认 publish-release-script）
-
-默认不发布不推送；只准备用: pnpm release:prepare patch --task-key=<key>
-真实发布用: pnpm release patch --publish --push`
-
-// ---------- 小工具 ----------
-
-function fail(msg) {
-  console.error(`release: ${msg}`)
-  process.exit(1)
-}
-
-function run(cmd, args, opts = {}) {
-  const r = spawnSync(cmd, args, { stdio: ['inherit', 'pipe', 'pipe'], encoding: 'utf8', ...opts })
-  if (r.error) fail(`执行 ${cmd} 失败: ${r.error.message}`)
-  return r
-}
-
-function mustOk(r, what) {
-  if (r.status !== 0) {
-    const tail = (r.stderr || '').trim().split('\n').slice(-4).join(' | ')
-    fail(`${what} 失败（exit ${r.status}）${tail ? `：${tail}` : ''}`)
+export function runRelease({ args = process.argv.slice(2), cwd = process.cwd(), execute = spawnSync, log = console.log } = {}) {
+  if (args.includes('--help') || args.includes('-h')) { log(USAGE); return }
+  const opts = {}, positional = []
+  for (const arg of args) {
+    if (arg.startsWith('--')) {
+      const at = arg.indexOf('='), key = at < 0 ? arg.slice(2) : arg.slice(2, at), value = at < 0 ? true : arg.slice(at + 1)
+      assert(['prepare', 'preview', 'publish', 'push', 'task-key', 'resume'].includes(key), '未知选项：' + key)
+      assert(!(key in opts), '重复选项：' + key)
+      assert(['task-key', 'resume'].includes(key) ? typeof value === 'string' && value.length : value === true, '选项值非法：' + key)
+      opts[key] = value
+    } else positional.push(arg)
   }
-  return r
-}
-
-function readJson(rel) {
+  assert(!(opts.prepare && (opts.publish || opts.push || opts.resume)), '--prepare 与发布/恢复互斥')
+  assert(!opts.push || opts.publish, '--push 必须与 --publish 同用')
+  assert(opts.resume ? positional.length === 0 : positional.length === 1, '提供一个 bump 或 --resume=<version>')
+  assert(!opts.resume || !opts['task-key'], '恢复使用原任务，不接受新 task-key')
+  const run = (cmd, argv, allowFailure = false) => {
+    const r = execute(cmd, argv, { cwd, encoding: 'utf8', stdio: ['inherit', 'pipe', 'pipe'], maxBuffer: 32 * 1024 * 1024 })
+    assert(!r.error && (allowFailure || r.status === 0), cmd + ' ' + argv[0] + ' 失败（exit ' + String(r.status) + '；未回显外部输出）')
+    return r
+  }
+  const git = argv => run('git', argv).stdout.trim()
+  const root = git(['rev-parse', '--show-toplevel']); cwd = root
+  const read = rel => JSON.parse(fs.readFileSync(path.join(root, rel), 'utf8'))
+  const write = (file, obj) => fs.writeFileSync(file, JSON.stringify(obj, null, 2) + '\n')
+  assert(read('package.json').name === 'yondren-psycho-frame-workspace', '仅允许本框架仓库发布')
+  assert(git(['branch', '--show-current']) === 'main', '发布只允许 main')
+  assert(!git(['status', '--porcelain']), '工作区不干净；先提交或还原')
+  const common = path.resolve(root, git(['rev-parse', '--git-common-dir']))
+  assert(fs.realpathSync(common) === fs.realpathSync(path.resolve(root, git(['rev-parse', '--git-dir']))), '发布必须在主 checkout')
+  const remoteRef = (remote, ref) => {
+    const lines = run('git', ['ls-remote', '--refs', remote, ref]).stdout.trim().split('\n').filter(Boolean)
+    assert(lines.length <= 1, '远端引用不唯一')
+    if (!lines.length) return null
+    const [oid, name] = lines[0].split(/\s+/)
+    assert(/^[a-f0-9]{40,64}$/.test(oid) && name === ref, '远端引用结果非法')
+    return oid
+  }
+  const head = git(['rev-parse', 'HEAD'])
+  const origin = remoteRef('origin', 'refs/heads/main')
+  assert(origin, '无法读取 origin/main；拒绝跳过远端校验')
+  const current = read(FILES[0]).version
+  const version = opts.resume ?? (BUMPS.includes(positional[0]) ? bumpVersion(current, positional[0]) : positional[0])
+  assert(parseSemver(version), '版本不是合法 SemVer')
+  const tag = 'v' + version, tagRef = 'refs/tags/' + tag
+  const stateDir = path.join(common, 'releases', version), stateFile = path.join(stateDir, 'state.json')
+  let state
+  if (opts.resume) {
+    assert(fs.existsSync(stateFile), '没有恢复记录：' + stateFile)
+    state = JSON.parse(fs.readFileSync(stateFile, 'utf8'))
+    assert(state.formatVersion === 1 && state.version === version && ['committed', 'prepared', 'publishing', 'published', 'origin-pushed', 'complete'].includes(state.phase), '准备尚未完成；查看备份文件与恢复记录，修复后重新准备')
+    assert(state.head === head && current === version, 'HEAD/版本已改变；拒绝发布过期产物')
+    assert(state.artifacts?.length === 2 && state.artifacts.every((a, i) => a.name === [CORE, SHIM][i]), '恢复记录包清单非法')
+  } else {
+    assert(head === origin, 'HEAD 与 origin/main 精确 OID 不一致；拒绝过期基线')
+    assert(compareSemver(version, current) > 0, '新版本必须高于当前版本')
+    assert(!fs.existsSync(stateDir), '此版本已有准备记录；使用 --resume 或按记录恢复，不覆盖产物')
+    assert(run('git', ['show-ref', '--verify', '--quiet', tagRef], true).status === 1, '本地 tag 已存在')
+    assert(!remoteRef('origin', tagRef), '远端 tag 已存在')
+    const key = opts['task-key']
+    assert(typeof key === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(key), '准备必须显式 --task-key=<key>')
+    const cards = readTaskCards(root).filter(c => c.key === key)
+    assert(cards.length === 1 && cards[0].status === 'IN_PROGRESS', '发布任务必须唯一且为 IN_PROGRESS')
+    const registry = run('npm', ['config', 'get', 'registry']).stdout.trim()
+    const url = new URL(registry)
+    assert(['https:', 'http:'].includes(url.protocol) && !url.username && !url.password && !url.search && !url.hash, 'registry 地址必须无凭据与查询参数')
+    state = { formatVersion: 1, version, taskKey: key, base: head, origin, registry: url.href, phase: 'preparing', artifacts: [], published: [], validation: [], node: process.version }
+    const core = read(FILES[0]), shim = read(FILES[1]), template = read(FILES[2])
+    assert(core.name === CORE && shim.name === SHIM && shim.version === current, '两包名称或版本不一致')
+    assert([current, '^' + current].includes(template.devDependencies?.[CORE]), '模板 pin 与当前版本不一致')
+  }
+  const task = readTaskCards(root).filter(c => c.key === state.taskKey)
+  assert(task.length === 1 && ['IN_PROGRESS', 'DONE'].includes(task[0].status), '恢复任务必须存在且允许发布')
+  const pin = version.includes('-') ? version : '^' + version
+  const localTag = () => {
+    const r = run('git', ['rev-parse', '--verify', tagRef], true)
+    return r.status === 0 ? r.stdout.trim() : null
+  }
+  const checkRemote = () => {
+    const now = remoteRef('origin', 'refs/heads/main')
+    assert(now === state.origin || (state.head && now === state.head), 'origin/main 已变化；停止发布/推送')
+    const remoteTag = remoteRef('origin', tagRef)
+    assert(!remoteTag || (state.tagOid && remoteTag === state.tagOid), '远端 tag 冲突')
+    if (opts.push) {
+      const mirror = remoteRef('codeup', 'refs/heads/mirror')
+      assert(mirror === null || mirror === state.origin || mirror === state.head, 'codeup/mirror 不在本次基线或发布 HEAD；先人工对齐')
+    }
+  }
+  checkRemote()
+  if (opts.preview) { log('预览：' + version + (opts.resume ? ' 从恢复记录继续' : ' 准备、验证、pack、commit/tag') + '；未写入'); return { state, stateFile } }
+  fs.mkdirSync(path.dirname(stateDir), { recursive: true })
+  const lock = path.join(path.dirname(stateDir), '.lock')
+  try { fs.mkdirSync(lock) } catch { throw new Error('发布锁已存在；确认无发布进程后清理 ' + lock) }
+  const save = () => {
+    const temp = stateFile + '.tmp'
+    write(temp, state); fs.renameSync(temp, stateFile)
+  }
+  const inspectArtifacts = () => {
+    for (const a of state.artifacts) {
+      assert(path.basename(a.file) === a.file && a.file.endsWith('.tgz'), '产物路径非法')
+      const file = path.join(stateDir, a.file)
+      assert(fs.lstatSync(file).isFile() && !fs.lstatSync(file).isSymbolicLink(), '产物必须是普通文件')
+      assert(integrity(file) === a.integrity, '产物摘要不一致：' + a.name)
+      const entries = run('tar', ['-tzf', file]).stdout.trim().split('\n')
+      assert(entries.every(e => !e.startsWith('/') && !e.split('/').includes('..') && !e.endsWith('/.gitignore')), 'tarball 路径或 .gitignore 条目非法')
+      const pkg = JSON.parse(run('tar', ['-xzOf', file, 'package/package.json']).stdout)
+      assert(pkg.name === a.name && pkg.version === version && !pkg.private, 'tarball 包身份非法')
+      if (a.name === CORE) {
+        const tpl = JSON.parse(run('tar', ['-xzOf', file, 'package/template/package.json']).stdout)
+        assert(tpl.devDependencies?.[CORE] === pin, 'tarball 模板 pin 不一致')
+      } else assert(pkg.dependencies?.[CORE] === '^' + version || pkg.dependencies?.[CORE] === version, 'shim 依赖未固化为本次版本')
+    }
+  }
+  const ready = () => {
+    assert(!git(['status', '--porcelain']) && git(['rev-parse', 'HEAD']) === state.head, '发布前工作树或 HEAD 改变')
+    assert(localTag() === state.tagOid && git(['rev-parse', tagRef + '^{commit}']) === state.head, '本地 tag 与受测 HEAD 不一致')
+    assert(git(['rev-parse', 'HEAD^']) === state.base && git(['rev-parse', 'HEAD^{tree}']) === state.tree, '发布提交不匹配受测暂存树或基线')
+    inspectArtifacts(); checkRemote()
+  }
+  const validated = name => { state.validation.push({ name, at: new Date().toISOString() }); save() }
   try {
-    return JSON.parse(fs.readFileSync(path.join(root, rel), 'utf8'))
-  } catch {
-    fail(`无法读取 ${rel}`)
-  }
+    assert(git(['rev-parse', 'HEAD']) === head && !git(['status', '--porcelain']), '获取锁期间仓库改变')
+    checkRemote()
+    if (!opts.resume) {
+      fs.mkdirSync(stateDir)
+      state.originals = Object.fromEntries(FILES.map(rel => [rel, fs.readFileSync(path.join(root, rel), 'utf8')]))
+      save()
+      run('pnpm', ['install', '--frozen-lockfile'])
+      const core = read(FILES[0]), shim = read(FILES[1]), template = read(FILES[2])
+      core.version = shim.version = version; template.devDependencies[CORE] = pin
+      const expected = [core, shim, template].map(json => JSON.stringify(json, null, 2) + '\n')
+      for (const [i, text] of expected.entries()) fs.writeFileSync(path.join(root, FILES[i]), text)
+      const docs = verifyDocs(root)
+      assert(!docs.errors.length, '文档门禁失败：' + docs.errors.join('\n'))
+      validated('documentation')
+      const scope = collectChangeScope({ root, base: state.base })
+      const scan = scanContentSnapshots(root, scope)
+      assert(!scan.errors.length, '内容检查失败：' + scan.errors.join('\n'))
+      scan.notes.forEach(note => log(note))
+      validated('content snapshots')
+      run('pnpm', ['test'])
+      validated('current source tests')
+      run(process.execPath, ['packages/psycho-frame/src/cli.mjs', 'doctor'])
+      validated('doctor')
+      const config = readConfig(root), checks = destroyChecks(config)
+      if (config.workMode?.destroy === 'on') for (const command of checks) run(process.platform === 'win32' ? 'cmd.exe' : '/bin/sh', process.platform === 'win32' ? ['/c', command] : ['-c', command])
+      for (const name of [CORE, SHIM]) {
+        run('pnpm', ['--filter', name, 'pack', '--pack-destination', stateDir])
+        const file = name + '-' + version + '.tgz'
+        state.artifacts.push({ name, file, integrity: integrity(path.join(stateDir, file)) })
+      }
+      inspectArtifacts()
+      validated('packed metadata and integrity')
+      // Smoke consumes these exact bytes; it never repacks provided artifacts.
+      run(process.execPath, ['scripts/smoke-package.mjs', stateDir])
+      inspectArtifacts()
+      validated('exact tarball consumer lifecycle')
+      checkRemote()
+      assert(expected.every((text, i) => fs.readFileSync(path.join(root, FILES[i]), 'utf8') === text), '验证过程中版本文件被修改')
+      const changed = (git(['diff', '--name-only']) + '\n' + git(['diff', '--cached', '--name-only'])).split('\n').filter(Boolean)
+      assert(changed.every(f => FILES.includes(f)) && !git(['ls-files', '--others', '--exclude-standard']), '验证过程改动了发布清单以外的文件')
+      git(['add', '--', ...FILES])
+      state.tree = git(['write-tree']); save()
+      git(['commit', '-m', 'chore(release): ' + version + ' [' + state.taskKey + ']'])
+      state.head = git(['rev-parse', 'HEAD']); state.phase = 'committed'; save()
+    }
+    if (state.phase === 'committed') {
+      if (localTag()) assert(git(['cat-file', '-t', tagRef]) === 'tag' && git(['rev-parse', tagRef + '^{commit}']) === state.head, '未完成记录遇到冲突 tag')
+      else git(['tag', '-a', tag, '-m', CORE + ' ' + tag])
+      state.tagOid = localTag(); state.phase = 'prepared'; save()
+    }
+    ready()
+    if (!opts.publish) {
+      log('准备完成，恢复记录：' + stateFile + '\n发布受测产物：pnpm release --resume=' + version + ' --publish [--push]')
+      return { state, stateFile }
+    }
+    const registryIntegrity = a => {
+      const r = run('npm', ['view', a.name + '@' + version, 'dist.integrity', '--json', '--registry', state.registry], true)
+      let value
+      try { value = JSON.parse(r.stdout || r.stderr) } catch { throw new Error('无法解析 registry 核对结果：' + a.name) }
+      if (r.status !== 0) {
+        assert(value?.error?.code === 'E404', 'registry 查询失败；不能把认证/网络错误当成未发布')
+        return null
+      }
+      assert(typeof value === 'string', 'registry 缺少 dist.integrity：' + a.name)
+      return value
+    }
+    for (const a of state.artifacts) {
+      ready()
+      let remote = registryIntegrity(a)
+      if (remote !== null) assert(remote === a.integrity, '已发布包摘要冲突：' + a.name)
+      else {
+        run('npm', ['publish', path.join(stateDir, a.file), '--registry', state.registry, '--access', 'public', '--tag', version.includes('-') ? 'next' : 'latest'])
+        remote = registryIntegrity(a)
+        assert(remote === a.integrity, '发布后摘要核对失败：' + a.name)
+      }
+      if (!state.published.includes(a.name)) state.published.push(a.name)
+      state.phase = 'publishing'; save()
+    }
+    state.phase = 'published'; save()
+    if (opts.push) {
+      ready()
+      // Fast-forward only; explicit lease prevents a changed baseline being overwritten in the race window.
+      const expectedOrigin = remoteRef('origin', 'refs/heads/main')
+      assert(expectedOrigin === state.origin || expectedOrigin === state.head, 'origin/main 在推送前改变')
+      git(['push', '--atomic', '--force-with-lease=refs/heads/main:' + expectedOrigin, 'origin', 'HEAD:refs/heads/main', tagRef + ':' + tagRef])
+      assert(remoteRef('origin', 'refs/heads/main') === state.head && remoteRef('origin', tagRef) === state.tagOid, 'origin 推送后核对失败')
+      state.phase = 'origin-pushed'; save()
+      checkRemote()
+      const mirror = remoteRef('codeup', 'refs/heads/mirror')
+      assert(mirror === null || mirror === state.origin || mirror === state.head, '镜像在推送前改变')
+      git(['push', '--force-with-lease=refs/heads/mirror:' + (mirror ?? ''), 'codeup', 'HEAD:refs/heads/mirror'])
+      assert(remoteRef('codeup', 'refs/heads/mirror') === state.head, '镜像推送后核对失败')
+      state.phase = 'complete'; save()
+    }
+    log('release ' + version + '：' + state.phase + '；恢复记录：' + stateFile)
+    return { state, stateFile }
+  } catch (e) {
+    throw new Error(e.message + '\n保留恢复记录与产物：' + stateFile + '；准备中断时先按 originals 恢复三份文件，再处理本地 commit/tag；已发布版本不能覆盖。')
+  } finally { fs.rmdirSync(lock) }
 }
 
-function writeJson(rel, obj) {
-  fs.writeFileSync(path.join(root, rel), JSON.stringify(obj, null, 2) + '\n')
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  try { runRelease() } catch (e) { console.error('release: ' + e.message); process.exitCode = 1 }
 }
-
-function git(args) {
-  return mustOk(run('git', args, { cwd: root }), `git ${args[0]}`).stdout.trim()
-}
-
-function gitMaybe(args) {
-  return run('git', args, { cwd: root })
-}
-
-// ---------- 版本计算 ----------
-
-function templatePin(next) {
-  return next.includes('-') ? next : `^${next}`
-}
-
-// ---------- 参数 ----------
-
-const args = process.argv.slice(2)
-const flags = new Set(args.filter(a => a.startsWith('--') && !a.startsWith('--task-key=')))
-const positional = args.filter(a => !a.startsWith('--'))
-if (flags.has('--help') || flags.has('-h')) { console.log(USAGE); process.exit(0) }
-for (const f of flags) {
-  if (!['--prepare', '--preview', '--publish', '--push'].includes(f)) fail(`未知选项 ${f}（见 --help）`)
-}
-const taskKeyArgs = args.filter(a => a.startsWith('--task-key='))
-if (taskKeyArgs.length > 1) fail('--task-key= 只能给出一次')
-const taskKey = taskKeyArgs[0] ? taskKeyArgs[0].slice('--task-key='.length) : 'publish-release-script'
-if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(taskKey)) {
-  fail(`task_key "${taskKey}" 非法：须全小写连字符（见 tasks/README.md）`)
-}
-if (positional.length !== 1) fail(`需要一个 bump 参数（见 --help）\n\n${USAGE}`)
-const bumpArg = positional[0]
-const prepare = flags.has('--prepare')
-const preview = flags.has('--preview')
-const doPublish = flags.has('--publish')
-const doPush = flags.has('--push')
-if (prepare && (doPublish || doPush)) {
-  fail('--prepare 与 --publish/--push 互斥：只准备入口不发布不推送')
-}
-
-// ---------- 仓库定位与预检 ----------
-
-const topR = run('git', ['rev-parse', '--show-toplevel'])
-if (topR.status !== 0) fail('不在 git 仓库内；请在仓库 checkout 中运行')
-const root = topR.stdout.trim()
-const scriptPkg = readJson('package.json')
-if (scriptPkg.name !== 'yondren-psycho-frame-workspace') {
-  fail(`git 根 ${root} 不是本仓库（root package 名为 ${scriptPkg.name}）`)
-}
-
-const taskDir = path.join(root, 'tasks')
-const taskCard = fs.existsSync(taskDir)
-  ? fs.readdirSync(taskDir).find(f => f.endsWith(`-${taskKey}.md`))
-  : undefined
-if (!taskCard) fail(`tasks/ 下没有 task_key 为 ${taskKey} 的任务卡；先登记任务再发布（见 tasks/README.md）`)
-
-const status = gitMaybe(['status', '--porcelain']).stdout.trim()
-if (status !== '') fail('工作区不干净，先提交或还原再发布')
-
-const branch = git(['rev-parse', '--abbrev-ref', 'HEAD'])
-if (branch !== 'main') fail(`当前分支 ${branch}，发布只允许在 main 上`)
-
-const remoteOid = run('git', ['ls-remote', 'origin', 'refs/heads/main'])
-const ahead = gitMaybe(['log', '--oneline', 'origin/main..HEAD']).stdout.trim()
-if (ahead !== '') fail('本地有未推送提交，先对齐 origin/main 再发布')
-const originOid = remoteOid.status === 0 ? remoteOid.stdout.trim().split(/\s/)[0] : null
-if (!originOid) console.warn('release: 警告：无法读取 origin/main，推送前租约校验将跳过')
-
-// ---------- 读取与校验当前版本 ----------
-
-const coreJson = readJson(CORE_PKG)
-const shimJson = readJson(SHIM_PKG)
-const templateJson = readJson(TEMPLATE_PKG)
-const current = coreJson.version
-if (coreJson.name !== CORE) fail(`${CORE_PKG} 的 name 不是 ${CORE}`)
-if (shimJson.name !== SHIM) fail(`${SHIM_PKG} 的 name 不是 ${SHIM}`)
-if (shimJson.version !== current) fail(`两包版本不一致：${CORE}=${current}，${SHIM}=${shimJson.version}`)
-const curPin = templateJson.devDependencies?.[CORE]
-if (curPin !== `^${current}` && curPin !== current) {
-  fail(`模板 pin ${curPin} 与当前版本 ${current} 不同步（应为 ^${current}）`)
-}
-
-const next = BUMP_TYPES.includes(bumpArg) ? bumpVersion(current, bumpArg)
-  : (parseSemver(bumpArg) && compareSemver(bumpArg, current) > 0
-      ? bumpArg
-      : fail(`${bumpArg} 不是合法 bump 类型或未大于当前版本 ${current}`))
-const pin = templatePin(next)
-
-console.log(`release: ${CORE} ${current} → ${next}（模板 pin ${curPin} → ${pin}）`)
-
-if (preview) {
-  console.log('release: [preview] 将写入：')
-  console.log(`  ${CORE_PKG}         version ${current} → ${next}`)
-  console.log(`  ${SHIM_PKG} version ${current} → ${next}`)
-  console.log(`  ${TEMPLATE_PKG} devDependencies[${CORE}] ${curPin} → ${pin}`)
-  console.log('release: [preview] 将执行：pnpm install → verify → doctor → pack 预检 → commit + tag v' + next +
-    (doPublish ? ' → 双发' : '') + (doPush ? ' → push' : '（未加 --publish/--push，跳过发布与推送）'))
-  process.exit(0)
-}
-
-// ---------- 依赖就位 ----------
-
-// workspace: 协议转换需要 install 后的链接状态；--frozen-lockfile 防止锁文件漂移。
-const pnpmCheck = run('pnpm', ['--version'])
-if (pnpmCheck.status !== 0) fail('未找到 pnpm；先安装 pnpm（packageManager 为 pnpm@11.20.0）')
-mustOk(run('pnpm', ['install', '--frozen-lockfile'], { cwd: root }), 'pnpm install')
-
-// ---------- bump 三处 ----------
-
-coreJson.version = next
-shimJson.version = next
-templateJson.devDependencies[CORE] = pin
-writeJson(CORE_PKG, coreJson)
-writeJson(SHIM_PKG, shimJson)
-writeJson(TEMPLATE_PKG, templateJson)
-
-// ---------- 门禁 ----------
-
-const cli = path.join(root, 'packages', 'psycho-frame', 'src', 'cli.mjs')
-mustOk(run(process.execPath, [cli, 'verify'], { cwd: root }), 'verify:docs 门禁')
-mustOk(run(process.execPath, [cli, 'doctor'], { cwd: root }), 'doctor 检查')
-
-// ---------- pack 预检 ----------
-
-function packAndInspect(rel, filter) {
-  const dest = fs.mkdtempSync(path.join(os.tmpdir(), 'release-pack-'))
-  const r = mustOk(run('pnpm', ['--filter', filter, 'pack', '--pack-destination', dest], { cwd: root }),
-    `${filter} pack`)
-  const tgz = r.stdout.trim().split('\n').filter(l => l.trim().endsWith('.tgz')).pop()
-  if (!tgz) fail(`${filter} pack 未输出 tarball 路径`)
-  const file = path.isAbsolute(tgz) ? tgz : path.join(dest, tgz)
-  const entries = run('tar', ['-tzf', file]).stdout.trim().split('\n')
-  if (entries.some(e => e.endsWith('/.gitignore'))) {
-    fail(`${filter} tarball 含 .gitignore 条目（npm pack 会丢弃），模板须用无点 gitignore`)
-  }
-  const pkgJson = run('tar', ['-xzOf', file, 'package/package.json']).stdout
-  const pkg = JSON.parse(pkgJson)
-  if (pkg.name !== filter) fail(`${filter} tarball 内 name 为 ${pkg.name}`)
-  if (pkg.version !== next) fail(`${filter} tarball 内 version ${pkg.version} ≠ ${next}`)
-  return { pkg, file, dest }
-}
-
-const coreTarball = packAndInspect(CORE_PKG, CORE)
-const inner = run('tar', ['-xzOf', coreTarball.file, 'package/template/package.json']).stdout
-const innerPin = JSON.parse(inner).devDependencies?.[CORE]
-if (innerPin !== pin) fail(`核心包 tarball 内模板 pin ${innerPin} ≠ ${pin}`)
-
-const shimTarball = packAndInspect(SHIM_PKG, SHIM)
-const shimDep = shimTarball.pkg.dependencies?.[CORE]
-if (shimDep === undefined || shimDep.includes('workspace:')) {
-  fail(`shim tarball 依赖 ${CORE} 为 ${shimDep}，workspace: 协议未转换`)
-}
-if (!next.includes('-') && shimDep !== pin) {
-  fail(`shim tarball 依赖 ${CORE}=${shimDep}，期望 ${pin}`)
-}
-console.log(`release: pack 预检通过（${CORE} tarball 模板 pin ${innerPin}；shim 依赖固化 ${shimDep}）`)
-
-// ---------- commit + tag ----------
-
-const bumped = [CORE_PKG, SHIM_PKG, TEMPLATE_PKG]
-git(['add', ...bumped])
-git(['commit', '-m', `chore(release): 两包升 ${next}、模板 devDep 同步 [${taskKey}]`])
-git(['tag', '-a', `v${next}`, '-m', `${CORE} v${next}`])
-console.log(`release: 已提交并打 tag v${next}`)
-
-// ---------- 发布（可选） ----------
-
-// 发布交接：命令行不带日志前缀，便于整块复制到终端执行。
-function publishHandoff() {
-  console.log(`
-release: ── 发布前准备完成：${CORE} 与 ${SHIM} 已 bump 到 ${next}，commit + tag v${next} 就绪（未发布、未推送）──
-release: 以下命令请在你的终端按序执行（需要 npm 凭据与 2FA；版本一旦发布不可覆盖）：
-
-  pnpm publish --filter ${CORE} --no-git-checks
-  pnpm publish --filter ${SHIM} --no-git-checks
-  npm view ${CORE} version dist-tags && npm view ${SHIM} version dist-tags
-  git push origin main
-  git push origin v${next}
-  git push codeup main:mirror
-
-release: 核对点：两包 dist-tags.latest 均为 ${next} 之后才推送。
-release: 发布前回退（本地未推送）：git tag -d v${next} && git reset --hard <准备前 OID>`)
-}
-
-if (!doPublish) {
-  if (doPush) console.log('release: 注意：未加 --publish，--push 不执行。')
-  publishHandoff()
-  process.exit(0)
-}
-
-for (const name of [CORE, SHIM]) {
-  mustOk(run('pnpm', ['publish', '--filter', name, '--no-git-checks'], { cwd: root }),
-    `发布 ${name}`)
-  console.log(`release: ${name}@${next} 已发布`)
-}
-
-// ---------- 推送（可选） ----------
-
-if (!doPush) {
-  console.log(`release: 已发布 ${next}，未加 --push，跳过推送。推送命令：
-  git push origin main
-  git push origin v${next}
-  git push codeup main:mirror`)
-  process.exit(0)
-}
-
-if (originOid) {
-  const nowOid = run('git', ['ls-remote', 'origin', 'refs/heads/main']).stdout.trim().split(/\s/)[0]
-  if (nowOid !== originOid) fail(`origin/main 已变化（${originOid} → ${nowOid}），租约失效，拒绝推送`)
-}
-git(['push', 'origin', 'main'])
-git(['push', 'origin', `v${next}`])
-const codeup = gitMaybe(['push', 'codeup', 'main:mirror'])
-if (codeup.status === 0) {
-  console.log('release: 已推送 codeup main:mirror')
-} else {
-  console.warn('release: 警告：codeup 镜像推送失败（origin 已推送成功）。手动补推：git push codeup main:mirror')
-}
-console.log(`release: 已推送 origin main 与 v${next}，发布完成。`)

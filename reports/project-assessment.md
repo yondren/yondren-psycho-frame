@@ -224,7 +224,7 @@ destroy 被描述为本地门禁，但开关写入 Git 跟踪配置，verify 不
 | B：随后一个迭代 | F05–F08 | 4–7 人日 | 升级保留扩展索引、教程全路径可执行、PR 覆盖交付路径、发布可恢复 |
 | C：稳定后 | F10–F12、错误码、检索路由与规模基准 | 2–4 人日，不含完整检索实现 | 目录和版本语义一致、机器输出稳定、得到真实规模与上下文成本数据 |
 
-设计和接受条件见[待审加固提案](../decisions/proposed/testing/2026-09-21-project-assessment-hardening.md)，该提案未实施，不代表已批准产品行为变更。
+评估时拟定的设计见[加固决策](../decisions/implemented/testing/2026-09-21-project-assessment-hardening.md)，修复执行与当前结果见[加固验收报告](hardening-completion.md)。
 
 建议持续观察：
 

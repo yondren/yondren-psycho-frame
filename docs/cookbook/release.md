@@ -1,57 +1,35 @@
 # 发布两包到 npm
 
-两包锁步同版本；准备动作由 [scripts/release.mjs](../../scripts/release.mjs) 完成，发布本身需维护者
-npm 凭据与 2FA（设计理由见
-[2026-09-09-publish-release-script.md](../../decisions/implemented/process/2026-09-09-publish-release-script.md)）。
+设计见 [发布决策](../../decisions/implemented/process/2026-09-09-publish-release-script.md)。
 
 ## 1. 准备
 
-在根 checkout 的 `main` 上（脚本拒绝其它分支、脏工作区与未推送提交），先登记 `tasks/` 任务并置
-`IN_PROGRESS`，再执行：
+发布任务先在 worktree 完成材料并合入 main，卡片保持 IN_PROGRESS。
+根 checkout 的 main 必须干净，HEAD 与 origin/main 精确相同，tag 无冲突。
 
 ```sh
-pnpm release:prepare <major|minor|patch|X.Y.Z> --task-key=<task_key>
+pnpm release:prepare patch --task-key=<key>
 ```
 
-脚本按序：预检 → `pnpm install --frozen-lockfile` → bump 两包 `version` 与模板 devDep pin →
-`verify:docs` 与 `doctor` → pack 预检（tarball 无 `.gitignore` 条目、shim 依赖已固化 `^x.y.z`、
-模板 pin 一致）→ commit（含 task_key）+ 注解 tag `vX.Y.Z`，结尾打印发布交接块。
-`--preview` 全程只读；`--prepare` 与 `--publish`/`--push` 互斥。
+准备执行安装、bump、文档/内容门禁、当前源码测试、doctor、双包 pack 和受测产物教程冒烟，
+再 commit/tag。`--preview` 只读；默认不发布不推送。
+恢复记录、原文件及 SHA-512 产物位于 Git common-dir/releases/<version>/，不入 Git，不随清理 worktree 丢失。
 
-## 2. 发布
-
-按交接块顺序，两包按依赖序（先核心后 shim）：
+## 2. 发布与恢复
 
 ```sh
-pnpm publish --filter yondren-psycho-frame --no-git-checks
-pnpm publish --filter create-yondren-psycho-frame --no-git-checks
+pnpm release --resume=<version> --publish
+pnpm release --resume=<version> --publish --push
 ```
 
-## 3. 验证
+发布保存的 tarball；每包先查 registry 摘要，相同即跳过、不同即停止，缺失才发布。
+稳定版 tag 为 latest，预发布为 next；恢复不会改写已存在版本或重新指定 dist-tag。
+第二包失败直接同版本恢复。推送使用明确租约，origin 原子提交 main/tag 后再推 codeup mirror。
+远端、HEAD/tag 或摘要变化立即停止；mirror 失败同样可恢复。
 
-```sh
-npm view yondren-psycho-frame version dist-tags
-npm view create-yondren-psycho-frame version dist-tags
-```
+## 3. 收尾与失败
 
-两包 `dist-tags.latest` 与本次版本一致才算成功；版本一旦发布不可覆盖，失败只能升版本重发。
-
-## 4. 推送
-
-核对通过后再推送，发布前失败可删 tag 与 commit 重做：
-
-```sh
-git push origin main
-git push origin vX.Y.Z
-git push codeup main:mirror
-```
-
-## 5. 留痕
-
-任务置 `DONE`、写 `reports/<task_key>.md`；README 与官网用 `@latest`，无需改动。
-
-## 6. 发布失败
-
-`PUT … - Not found`（E404）表示凭据未被接受：registry 对未认证的 PUT 一律回 404，与包是否存在
-无关。先 `npm whoami` 确认身份，401 时 `npm login` 重新登录，或换用对两个包有 read/write 权限的
-granular access token。凭据修好前不要重跑第二条，避免只发出一半。
+成功后更新报告、移除 worktree、置 DONE；另核对 CI 与网站。
+准备阶段失败不会自动回滚：按 state.json 的 originals 恢复三份文件，核对本地 commit/tag 后保留或移走状态目录再重试。
+发布过的版本不能覆盖；认证/网络失败须先解决再恢复，不把查询失败当成未发布。
+进程异常退出可能留 .lock，确认没有发布进程后再移除；跨 registry/Git 无全局事务。

@@ -12,8 +12,11 @@ const env = { ...process.env, CI: 'true', PSYCHO_FRAME_NO_UPDATE_CHECK: '1', GIT
 const run = (cmd, args, cwd = root) => execFileSync(cmd, args, { cwd, env, stdio: 'inherit' })
 const quote = value => "'" + value.replaceAll("'", "'\\''") + "'"
 try {
-  const pack = path.join(temp, 'pack'); fs.mkdirSync(pack)
-  for (const name of ['yondren-psycho-frame', 'create-yondren-psycho-frame']) run('pnpm', ['--filter', name, 'pack', '--pack-destination', pack])
+  const pack = process.argv[2] ? path.resolve(process.argv[2]) : path.join(temp, 'pack')
+  if (!process.argv[2]) {
+    fs.mkdirSync(pack)
+    for (const name of ['yondren-psycho-frame', 'create-yondren-psycho-frame']) run('pnpm', ['--filter', name, 'pack', '--pack-destination', pack])
+  }
   const tarballs = fs.readdirSync(pack).filter(n => n.endsWith('.tgz')).map(n => path.join(pack, n))
   if (tarballs.length !== 2) throw new Error('Expected two tarballs')
   registry = fork(path.join(root, 'scripts/smoke-registry.mjs'), [pack], { stdio: ['ignore', 'inherit', 'inherit', 'ipc'] })
