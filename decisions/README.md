@@ -1,6 +1,6 @@
 # 决策记录（Decision Notes）
 
-- [门禁与升级边界加固提案](proposed/testing/2026-09-21-project-assessment-hardening.md)。
+- [门禁与升级边界加固](implemented/testing/2026-09-21-project-assessment-hardening.md)。
 
 - [CLI 路径与版本合同](implemented/bug-fix/2026-09-21-cli-contract-alignment.md)。
 

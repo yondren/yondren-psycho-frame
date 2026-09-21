@@ -46,7 +46,7 @@ CI：门禁、doctor、测试在 Node 18.20/22 上跑，Linux/macOS、PR 与 mai
 ## 包发布
 
 - 入口：`pnpm release:prepare <bump> --task-key=<key>` 只做准备（bump、门禁、pack 预检、
-  commit + tag），结尾打印发布交接命令；`pnpm release <bump> --publish --push` 一次跑完。
+  commit + tag），结尾打印产物恢复命令；`pnpm release <bump> --publish --push` 一次跑完。
   全流程（准备 → 发布 → 核对 → 推送 → 留痕）见 [cookbook/release.md](cookbook/release.md)。
 - 私有性：根 package.json 与模板 package.json 带 `private`，发布包不带。
 - 版本：semver；门禁脚本与模板的破坏性变更升 major，doctor 负责提示漂移。

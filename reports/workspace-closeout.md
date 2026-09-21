@@ -12,7 +12,7 @@ favicon.svg、og.svg、og.png。与临时保存快照逐字节比较一致，未
 同步[架构](../docs/architecture.md)和[官网决策](../decisions/implemented/feature/2026-09-09-yondern-psycho-frame-website.md)
 中的手写展示层范围；登记本报告和[任务卡](../tasks/2026-09-21-workspace-closeout.md)。
 
-评估任务补充的[六项修复计划](../decisions/proposed/testing/2026-09-21-project-assessment-hardening.md)
+评估任务补充的[六项修复计划](../decisions/implemented/testing/2026-09-21-project-assessment-hardening.md)
 单独提交合流；本次更新评估任务与报告的收尾状态。
 
 ## 2. 实现了什么
