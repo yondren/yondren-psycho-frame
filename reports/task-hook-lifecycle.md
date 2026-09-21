@@ -1,7 +1,7 @@
 # task-hook-lifecycle 执行报告
 
 - task_key: task-hook-lifecycle
-- 状态: IN_PROGRESS
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
@@ -26,7 +26,7 @@ CLI 帮助、cookbook 及模板、既有 task start 决策同步。
 
 ## 6. 合流状态
 
-待合流 main，无远端推送。
+已合入 main，worktree 和分支已清理，无远端推送。
 
 ## 7. 还剩什么阻塞
 
