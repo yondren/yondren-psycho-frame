@@ -1,5 +1,7 @@
 # 执行报告
 
+- [项目综合评估](project-assessment.md)（含复现证据与改进优先级）。
+
 单次执行的过程产物，命名 `reports/<task_key>.md`。同一任务多轮迭代继续更新同一份，
 不建日期副本。报告是过程记录，不是长期事实；长期结论去 docs/ 与 decisions/。
 任务规则见 [tasks/README.md](../tasks/README.md)。
