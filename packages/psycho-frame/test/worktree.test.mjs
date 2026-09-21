@@ -1,4 +1,49 @@
 import { test } from 'node:test'
+
+test('task start keeps a rejecting existing pre-commit hook and its stdin/arguments', () => {
+  const root = gitFixture()
+  const hooks = path.join(root, '.git', 'hooks')
+  fs.writeFileSync(path.join(hooks, 'pre-commit'), '#!/bin/sh\nexit 19\n', { mode: 0o755 })
+  const result = startTask({ root, key: 'guarded', stdout: quiet })
+  assert.equal(result.ok, true)
+  assert.throws(() => gitIn(result.worktree, 'commit', '--allow-empty', '-m', 'guarded'))
+  assert.deepEqual(checkWorktrees(root).issues, [])
+})
+
+test('custom hook path with spaces and quotes is forwarded without modifying the original', () => {
+  const root = gitFixture(), hooks = path.join(root, "custom hooks 'quoted'")
+  fs.mkdirSync(hooks)
+  const original = '#!/bin/sh\nexit 13\n'
+  fs.writeFileSync(path.join(hooks, 'pre-commit'), original, { mode: 0o755 })
+  gitIn(root, 'config', 'core.hooksPath', hooks)
+  const result = startTask({ root, key: 'custom', stdout: quiet })
+  assert.equal(result.ok, true)
+  assert.throws(() => gitIn(result.worktree, 'commit', '--allow-empty', '-m', 'custom'))
+  assert.equal(fs.readFileSync(path.join(hooks, 'pre-commit'), 'utf8'), original)
+})
+
+test('DONE task cannot be implicitly restarted or create a worktree', () => {
+  const root = gitFixture()
+  write(root, 'tasks/2026-01-01-finished.md', '# Finished\n\n- task_key: finished\n- status: DONE\n')
+  const r = startTask({ root, key: 'finished', stdout: quiet })
+  assert.equal(r.ok, false)
+  assert.equal(listWorktrees(root).length, 1)
+})
+
+test('retry repairs missing report and forwarding hook but refuses custom hook changes', () => {
+  const root = gitFixture()
+  const r = startTask({ root, key: 'repair', stdout: quiet })
+  const hook = path.join(hooksPathOf(r.worktree), 'pre-commit')
+  fs.unlinkSync(hook)
+  fs.unlinkSync(path.join(r.worktree, 'reports/repair.md'))
+  assert.ok(checkWorktrees(root).issues.some(e => e.includes('pre-commit')))
+  assert.equal(startTask({ root, key: 'repair', stdout: quiet }).ok, true)
+  assert.deepEqual(checkWorktrees(root).issues, [])
+  fs.writeFileSync(hook, '#!/bin/sh\nexit 1\n')
+  const again = startTask({ root, key: 'repair', stdout: quiet })
+  assert.equal(again.ok, false)
+  assert.equal(fs.readFileSync(hook, 'utf8'), '#!/bin/sh\nexit 1\n')
+})
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'

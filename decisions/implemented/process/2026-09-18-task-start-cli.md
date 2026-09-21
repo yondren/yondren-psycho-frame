@@ -14,7 +14,7 @@ Agent 在实际会话里经常直接在主 checkout 改文件——规则没有�
 收敛成一条命令：建分支与 `.worktrees/<task_key>`、写 `tasks/<日期>-<task_key>.md`（`IN_PROGRESS`）
 与 `reports/<task_key>.md` 占位、开 `extensions.worktreeConfig` 并设该 worktree 的
 `core.hooksPath`、缺 `.worktrees/` 时补 `.gitignore`。`--base` 缺省 main / master，只能从主 checkout
-执行；重复执行时若 worktree 与分支一致就幂等跳过。
+执行；重复执行校验分支和 IN_PROGRESS 状态，恢复缺失报告与转发 hook；DONE key 拒绝重用。
 
 配套 `psycho-frame task check` 把纪律变成检查：`IN_PROGRESS` 必须有 worktree、`DONE` 不留
 worktree、无孤儿 worktree、根 checkout 不检出任务分支、各 worktree 的 `core.hooksPath` 互不相同、
@@ -38,6 +38,7 @@ worktree 会让每个任务付一次冷安装成本。
 ## Consequences
 
 - 开任务从三步手工命令变成一条命令；漏建 worktree 有 `task check` 与毁灭门禁两个信号。
+- 原 hook 来源保持只读，自定义隔离 hook 不覆盖；转发缺失或被修改会由 task check 报错。
 - 任务卡与报告占位由命令生成，`task start` 之后必须补齐任务卡「范围」再开工。
 - `task start` 对宿主仓库的唯一自动改动是补 `.gitignore` 的 `.worktrees/`。
 - 手工 `git worktree add` 仍可用，但 `task check` 会因缺 hooks 隔离报违规。

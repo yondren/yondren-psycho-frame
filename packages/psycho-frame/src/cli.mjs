@@ -64,7 +64,7 @@ const USAGE = `psycho-frame ${version} — 见山处（Yondren）精神力骨架
                     destroy=off，audience=expert，engineering=off）
   task start <task_key> [--base <ref>] [--title <标题>]
                     一条命令开任务 worktree：建分支与 .worktrees/<task_key>、登记任务卡与报告
-                    占位、隔离 worktree 级 core.hooksPath；幂等，已存在则跳过
+                    占位、隔离 worktree 级 core.hooksPath；幂等恢复未完成任务，DONE key 拒绝重开
   task check [--json]
                     worktree 纪律检查：IN_PROGRESS 必须有 worktree、DONE 不留 worktree、
                     任务分支不在根 checkout 检出、各 worktree 的 core.hooksPath 互不相同
@@ -188,7 +188,7 @@ psycho-frame task check [--json]
 task start：一条命令开任务 worktree，等价于 docs/cookbook/parallel-worktrees.md 的手工三步——
 建分支 <task_key> 与 .worktrees/<task_key>、登记 tasks/<日期>-<task_key>.md（IN_PROGRESS）与
 reports/<task_key>.md 占位、开 extensions.worktreeConfig 并设该 worktree 的 core.hooksPath 隔离。
-缺 .worktrees/ 的 .gitignore 会自动补一行；worktree 已存在且分支正确时幂等跳过。只能从主
+缺 .worktrees/ 的 .gitignore 会自动补一行；worktree 已存在时检查状态并补齐报告/hooks；DONE 拒绝重开。只能从主
 checkout 执行（linked worktree 内中止）。
 --base 缺省用 main / master；没有则必须显式提供。
 
