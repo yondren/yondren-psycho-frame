@@ -19,17 +19,8 @@ const DEFAULT_REGISTRY_URL = 'https://registry.npmjs.org'
 const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000
 const DEFAULT_TIMEOUT_MS = 3000
 
-/** semver 数字比较：忽略 prerelease/build 段；返回 -1 / 0 / 1。 */
-export function compareVersions(a, b) {
-  const pa = a.split(/[-+]/)[0].split('.').map(n => parseInt(n, 10) || 0)
-  const pb = b.split(/[-+]/)[0].split('.').map(n => parseInt(n, 10) || 0)
-  const len = Math.max(pa.length, pb.length)
-  for (let i = 0; i < len; i++) {
-    const d = (pa[i] ?? 0) - (pb[i] ?? 0)
-    if (d !== 0) return d < 0 ? -1 : 1
-  }
-  return 0
-}
+import { parseSemver, compareSemver as compareVersions } from './semver.mjs'
+export { compareVersions }
 
 export function defaultCacheFile(env = process.env) {
   if (env.PSYCHO_FRAME_UPDATE_CACHE_FILE) return env.PSYCHO_FRAME_UPDATE_CACHE_FILE
@@ -45,7 +36,7 @@ export function registryUrl(env = process.env) {
 export function readUpdateCache(cacheFile, now = Date.now(), ttlMs = DEFAULT_TTL_MS) {
   try {
     const data = JSON.parse(fs.readFileSync(cacheFile, 'utf8'))
-    if (typeof data.checkedAt === 'number' && typeof data.latest === 'string' && now - data.checkedAt < ttlMs) {
+    if (typeof data.checkedAt === 'number' && parseSemver(data.latest) !== null && now - data.checkedAt < ttlMs) {
       return data
     }
   } catch {}
@@ -87,7 +78,7 @@ export function fetchLatest({ registryUrl: base, name, timeoutMs = DEFAULT_TIMEO
         res.on('end', () => {
           try {
             const tags = JSON.parse(body)
-            resolve(typeof tags.latest === 'string' ? tags.latest : null)
+            resolve(parseSemver(tags.latest) !== null ? tags.latest : null)
           } catch {
             resolve(null)
           }
@@ -113,7 +104,7 @@ export function notifyUpdate({
   now = Date.now(),
   printer = console.error,
 }) {
-  if (disabled || !isTTY) return { notified: false, stale: false }
+  if (disabled || !isTTY || !parseSemver(currentVersion)) return { notified: false, stale: false }
   const cache = readUpdateCache(cacheFile, now, ttlMs)
   if (cache === null) return { notified: false, stale: true }
   if (compareVersions(cache.latest, currentVersion) > 0) {

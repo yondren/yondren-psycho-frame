@@ -35,7 +35,7 @@ pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版�
 | `self-upgrade` | CLI 自身升级：npm 全局安装自动 `npm install -g` 到最新版，其余安装方式打印对应指引；`--check` 只查询（退出码 0=最新、1=落后） |
 | `init [目录]` | 新项目脚手架，生成知识四层 + AGENTS.md + 配置 |
 | `adopt [目录]` | 旧项目采纳，add-only：已存在的文件跳过并报告 |
-| `doctor [目录]` | 结构漂移检查：必需文件、配置、脚本、骨架漂移（与模板不一致的骨架文件数与缺失数），以及领先集成分支的本地分支（未合流的任务分支） |
+| `doctor [目录]` | 默认定位 Git 根，显式目录相对 cwd；结构漂移检查：必需文件、配置、脚本、骨架漂移（与模板不一致的骨架文件数与缺失数），以及领先集成分支的本地分支（未合流的任务分支） |
 | `help [命令]` | 无参数打印全量用法；带命令名打印该命令专属帮助；任意命令加 `--help` / `-h` 等价于 `help <命令>` |
 | `version` | 输出版本号（等价 `--version` / `-v`） |
 
@@ -50,6 +50,7 @@ pnpm add -D yondren-psycho-frame          # 作为 devDependency，门禁随版�
 | `workMode` | `{ plan: "on", confirmAmbiguous: true, fleet: "off", merge: "ask", destroy: "off", audience: "expert", engineering: "off" }` | 每次会话行为开关：纪律 `plan` / `confirmAmbiguous` / `fleet` / `merge` / `destroy`（on 时 `verify` 拉满），加沟通语域 `audience`（expert/product/novice，决定措辞与解释深度）与工程化 `engineering`（on/off，强制逐项过工程化清单）；语义与耦合矩阵见 [docs/modes.md](https://github.com/yondren/yondren-psycho-frame/blob/main/docs/modes.md)；用 `mode` 命令调整 |
 | `destroyChecks` | 无（矩阵为空） | `destroy=on` 时逐条执行的命令数组（本地全量矩阵），任一失败即门禁失败；不得包含 `verify` 自身 |
 | `budgets` | 无（不启用） | `{ 文件路径: 字数上限 }`，CJK 逐字计 1、拉丁/数字串计 1 词，超限门禁失败 |
+| `webRoots` | `[]` | 网站相对目录前缀（以 / 结尾），允许其中 Markdown 的站内根链接 |
 | `ignore` | 无 | 相对根的前缀列表，跳过门禁 |
 
 门禁只写当前状态、每个事实只有一个家、每个非平凡变更携带决策记录——制度文本全部在

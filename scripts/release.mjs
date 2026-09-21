@@ -6,6 +6,7 @@
 //      → commit + tag →（--publish）按序双发 →（--push）推 origin main + tag 与 codeup 镜像。
 // 默认（或 --prepare）只做本地 bump/commit/tag，结尾打印发布交接命令；--preview 完全只读。
 // --prepare 与 --publish/--push 互斥，供 pnpm release:prepare 入口使用。
+import { parseSemver, compareSemver, bumpVersion } from '../packages/psycho-frame/src/semver.mjs'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -18,7 +19,6 @@ const CORE_PKG = path.join('packages', 'psycho-frame', 'package.json')
 const SHIM_PKG = path.join('packages', 'create-yondren-psycho-frame', 'package.json')
 const TEMPLATE_PKG = path.join('packages', 'psycho-frame', 'template', 'package.json')
 const BUMP_TYPES = ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease']
-const SEMVER_RE = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/
 
 const USAGE = `用法: pnpm release <bump> [--prepare] [--preview] [--publish] [--push] [--task-key=<key>]
 
@@ -74,50 +74,6 @@ function gitMaybe(args) {
 }
 
 // ---------- 版本计算 ----------
-
-function parseSemver(v) {
-  const m = SEMVER_RE.exec(v)
-  if (!m) return null
-  return { major: Number(m[1]), minor: Number(m[2]), patch: Number(m[3]), pre: m[4] ?? '' }
-}
-
-function bumpVersion(current, type) {
-  const cur = parseSemver(current)
-  if (!cur) fail(`当前版本 ${current} 不是合法 semver`)
-  const { major, minor, patch, pre } = cur
-  let next
-  switch (type) {
-    case 'major': next = `${major + 1}.0.0`; break
-    case 'minor': next = `${major}.${minor + 1}.0`; break
-    case 'patch': next = `${major}.${minor}.${patch + 1}`; break
-    case 'premajor': next = `${major + 1}.0.0-0`; break
-    case 'preminor': next = `${major}.${minor + 1}.0-0`; break
-    case 'prepatch': next = `${major}.${minor}.${patch + 1}-0`; break
-    case 'prerelease': {
-      const preNum = pre.match(/(\d+)$/)
-      const n = preNum ? Number(preNum[1]) + 1 : 0
-      next = preNum
-        ? `${major}.${minor}.${patch}-${pre.slice(0, pre.length - preNum[1].length)}${n}`
-        : `${major}.${minor}.${patch + 1}-0`
-      break
-    }
-    default: fail(`未知 bump 类型 ${type}`)
-  }
-  if (!parseSemver(next)) fail(`bump 结果 ${next} 不是合法 semver`)
-  if (compareSemver(next, current) <= 0) fail(`新版本 ${next} 未大于当前 ${current}`)
-  return next
-}
-
-function compareSemver(a, b) {
-  const pa = parseSemver(a); const pb = parseSemver(b)
-  for (const k of ['major', 'minor', 'patch']) {
-    if (pa[k] !== pb[k]) return pa[k] > pb[k] ? 1 : -1
-  }
-  if (pa.pre === pb.pre) return 0
-  if (pa.pre === '') return 1
-  if (pb.pre === '') return -1
-  return pa.pre > pb.pre ? 1 : -1
-}
 
 function templatePin(next) {
   return next.includes('-') ? next : `^${next}`

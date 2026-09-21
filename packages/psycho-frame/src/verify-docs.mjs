@@ -66,12 +66,17 @@ export function verifyDocs(root) {
   let taskStatuses
   let budgets
   let ignores
+  let webRoots
   try {
     cfg = readConfig(root)
     decisionClasses = stringList(cfg, 'decisionClasses', DEFAULT_DECISION_CLASSES, '.psycho-frame.json')
     taskStatuses = stringList(cfg, 'taskStatuses', DEFAULT_TASK_STATUSES, '.psycho-frame.json')
     budgets = budgetsOf(cfg)
     ignores = ignorePatterns(cfg)
+    webRoots = stringList(cfg, 'webRoots', [], '.psycho-frame.json')
+    if (webRoots.some(p => !/^(?:[A-Za-z0-9_.-]+\/)+$/.test(p) || p.split('/').some(s => s === '..' || s === '.'))) {
+      throw new Error('.psycho-frame.json: webRoots 必须为仓库内相对目录前缀，以 / 结尾')
+    }
   } catch (e) {
     return { errors: [e.message], count: 0 }
   }
@@ -102,7 +107,7 @@ export function verifyDocs(root) {
   const isWinDrive = url => /^[A-Za-z]:[\\/]/.test(url)
   // Windows 盘符（C:\…）也匹配 scheme 语法，须先排除，否则不可移植路径检查永远不可达
   const isExternal = url =>
-    !isWinDrive(url) && (url.startsWith('//') || url.startsWith('/') || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url))
+    !isWinDrive(url) && (url.startsWith('//') || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url))
 
   function pathPart(url) {
     const raw = url.replace(/[#?].*$/, '')
@@ -135,10 +140,7 @@ export function verifyDocs(root) {
   function documentAnchors(source) {
     const anchors = new Set()
     const seen = new Map()
-    let inFence = false
-    for (const line of source.split('\n')) {
-      if (/^\s*(```|~~~)/.test(line)) { inFence = !inFence; continue }
-      if (inFence) continue
+    for (const line of unfencedLines(source)) {
       const text = headingText(line)
       if (text !== null) {
         const base = githubSlug(text)
@@ -165,15 +167,39 @@ export function verifyDocs(root) {
   }
   const anchorsOf = anchorCache()
 
-  /** 非围栏代码行，且已剔除行内代码段的文本行数组。 */
-  function proseLines(source) {
+  // Fences close only with the same character and at least the opening length.
+  function unfencedLines(source) {
     const out = []
-    let inFence = false
+    let fence = null
     for (const line of source.split('\n')) {
-      if (/^\s*(```|~~~)/.test(line)) { inFence = !inFence; continue }
-      if (!inFence) out.push(line.replace(/`[^`]*`/g, ''))
+      const m = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line)
+      if (fence) {
+        if (m && m[1][0] === fence[0] && m[1].length >= fence.length && !m[2].trim()) fence = null
+      } else if (m) fence = m[1]
+      else out.push(line)
     }
     return out
+  }
+  function proseLines(source) {
+    return unfencedLines(source).map(line => line.replace(/(`+)(?!`)(.*?)\1(?!`)/g, ''))
+  }
+  // Supported destinations: angle form (spaces), or balanced parentheses with escapes.
+  function destination(text) {
+    const s = text.trimStart()
+    if (s.startsWith('<')) {
+      const end = s.indexOf('>')
+      return end < 0 ? null : s.slice(1, end)
+    }
+    let value = '', depth = 0
+    for (let i = 0; i < s.length; i++) {
+      const c = s[i]
+      if (c === '\\' && /[()\\]/.test(s[i + 1] ?? '')) { value += s[++i]; continue }
+      if (/\s/.test(c) || (c === ')' && depth === 0)) break
+      if (c === '(') depth++
+      if (c === ')') depth--
+      value += c
+    }
+    return value || null
   }
 
   for (const f of mdFiles) {
@@ -182,10 +208,11 @@ export function verifyDocs(root) {
     // 归档记录冻结：出站链接与章节结构不复查（官方语义），仅头部由第 2 组检查。
     if (rp.startsWith('decisions/archived/')) continue
 
+    const external = url => isExternal(url) || (url.startsWith('/') && !url.startsWith('//') && webRoots.some(prefix => rp.startsWith(prefix)))
     const lines = proseLines(read(f))
     const dir = path.dirname(f)
     const checkTarget = (url, kind) => {
-      if (isWinDrive(url)) {
+      if (isWinDrive(url) || isWinDrive(pathPart(url)) || pathPart(url).startsWith('/')) {
         errors.push(`${rp}: ${kind}使用不可移植的绝对路径: ${url}`)
         return null
       }
@@ -206,19 +233,22 @@ export function verifyDocs(root) {
     // 引用式定义：[id]: target
     const defs = new Map()
     for (const line of lines) {
-      const m = /^\[([^\]]+)\]:\s*(\S+)/.exec(line)
+      const m = /^\[([^\]]+)\]:\s*(.+)/.exec(line)
       if (m === null) continue
-      defs.set(m[1].toLowerCase(), m[2])
-      if (isExternal(m[2])) continue
-      const resolved = checkTarget(m[2], '引用定义')
-      if (resolved !== null) checkAnchor(resolved, m[2], '引用定义')
+      const url = destination(m[2])
+      if (!url) continue
+      defs.set(m[1].toLowerCase(), url)
+      if (external(url)) continue
+      const resolved = checkTarget(url, '引用定义')
+      if (resolved !== null) checkAnchor(resolved, url, '引用定义')
     }
     // 行内链接与图片：[…](url)、![…](url)
     for (const line of lines) {
-      for (const m of line.matchAll(/!?\[[^\]]*\]\(([^)\s]+)[^)]*\)/g)) {
-        if (isExternal(m[1])) continue
-        const resolved = checkTarget(m[1], '链接')
-        if (resolved !== null) checkAnchor(resolved, m[1], '链接')
+      for (const m of line.matchAll(/!?\[[^\]]*\]\(/g)) {
+        const url = destination(line.slice(m.index + m[0].length))
+        if (!url || external(url)) continue
+        const resolved = checkTarget(url, '链接')
+        if (resolved !== null) checkAnchor(resolved, url, '链接')
       }
     }
     // 引用式调用：[text][id] 与 [id][]（id 缺失时回落到标签名）

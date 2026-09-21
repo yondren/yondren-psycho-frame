@@ -50,5 +50,8 @@
     "docs/postmortem/README.md": 120,
     "reports/README.md": 250,
     "tasks/README.md": 320
-  }
+  },
+  "webRoots": [
+    "website/src/"
+  ]
 }
