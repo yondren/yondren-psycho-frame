@@ -1,7 +1,7 @@
 # upgrade-boundaries 执行报告
 
 - task_key: upgrade-boundaries
-- 状态: IN_PROGRESS
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
@@ -31,7 +31,7 @@ F05：cookbook 索引保留本地说明及链接，只补模板条目；doctor �
 
 ## 6. 合流状态
 
-待将分支 upgrade-boundaries 合入 main 后收尾。
+分支 upgrade-boundaries 已合入 main；worktree 已移除。
 
 ## 7. 还剩什么阻塞
 
