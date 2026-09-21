@@ -1,7 +1,7 @@
 # 工作区接管与任务收尾报告
 
 - task_key: workspace-closeout
-- 状态: IN_PROGRESS（成果已验证，正在完成合流与清理）
+- 状态: DONE
 - 日期：2026-09-21
 
 ## 1. 改了哪些文件
@@ -44,6 +44,7 @@ project-assessment worktree；可见 Codex 任务列表中没有另一个正在�
 - 本地浏览器首页正常显示标题、操作入口和机甲展示；所采集页面 console error/warn 为空。
 - 本次只做桌面首页抽查，未宣称完整跨浏览器、移动端或无障碍认证。
 - CLI 产品源码未改，使用文档门禁与网站构建作为最窄验证；未重复上轮已完成的全量核心测试。
+- 架构说明同步时字数门禁发现 744 字超过 740 上限；精简说明后通过，未提高预算。
 
 ## 5. 文档与决策是否同步
 
@@ -52,10 +53,9 @@ project-assessment worktree；可见 Codex 任务列表中没有另一个正在�
 
 ## 6. 合流状态
 
-project-assessment 已合入 main。workspace-closeout 正在收束；完成后更新本节为最终状态。
-远端推送和发布不在本次范围内。
+project-assessment 与 workspace-closeout 均已合入 main；两个 worktree、对应任务分支及七个
+已合入的历史分支已安全删除。main 保留全部提交，远端未推送、未发布。
 
 ## 7. 还剩什么阻塞
 
-无。收尾目标为 main 干净、零 linked worktree、零 IN_PROGRESS/BLOCKED 任务，
-仅保留历史明确延期的一项任务；随后可从 main 派发新任务。
+无。任务已收尾，仅保留历史明确延期的一项任务；下一项任务从 main 用 task start 创建。

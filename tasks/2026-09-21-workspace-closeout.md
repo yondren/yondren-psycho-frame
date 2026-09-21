@@ -1,7 +1,7 @@
 # 工作区接管与任务收尾
 
 - task_key: workspace-closeout
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-21
 - updated: 2026-09-21
 - report: [reports/workspace-closeout.md](../reports/workspace-closeout.md)
@@ -15,3 +15,4 @@
 ## 进度
 
 - [IN_PROGRESS] 2026-09-21 worktree `workspace-closeout` 内开工。
+- [DONE] 2026-09-21 官网成果验证并合入 main；评估和修复计划归档，全部 linked worktree 与已合入任务分支已清理。
