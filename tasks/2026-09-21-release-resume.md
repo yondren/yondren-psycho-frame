@@ -1,7 +1,7 @@
 # release-resume
 
 - task_key: release-resume
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-21
 - updated: 2026-09-21
 - report: [reports/release-resume.md](../reports/release-resume.md)
@@ -14,4 +14,4 @@
 
 ## 进度
 
-- [IN_PROGRESS] 2026-09-21 worktree `release-resume` 内开工。
+- [DONE] 2026-09-21 验证通过、已合入 main，worktree 已移除。

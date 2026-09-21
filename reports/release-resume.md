@@ -1,7 +1,7 @@
 # release-resume 执行报告
 
 - task_key: release-resume
-- 状态: IN_PROGRESS
+- 状态: DONE
 
 ## 1. 改了哪些文件
 
@@ -37,7 +37,7 @@ resume 校验所有前提，逐包核对 registry 摘要，跳过相同包，只
 
 ## 6. 合流状态
 
-待合入 main。
+已合入 main，任务 worktree 已移除。
 
 ## 7. 还剩什么阻塞
 
