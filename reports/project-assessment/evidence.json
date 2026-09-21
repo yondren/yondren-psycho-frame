@@ -1,0 +1,96 @@
+{
+  "node": "v26.7.0",
+  "results": [
+    {
+      "id": "R1",
+      "scenario": "staged marker, sanitized working file",
+      "indexContainsMarker": true,
+      "exit": 0,
+      "result": {
+        "formatVersion": 1,
+        "ok": true,
+        "count": 28,
+        "destroy": true,
+        "checks": [],
+        "errors": []
+      }
+    },
+    {
+      "id": "R2",
+      "scenario": "task start overrides existing rejecting pre-commit",
+      "beforeExit": 1,
+      "afterExit": 0,
+      "taskIssues": []
+    },
+    {
+      "id": "R3",
+      "scenario": "upgrade follows docs symlink outside target",
+      "exit": 0,
+      "externalOverwritten": true
+    },
+    {
+      "id": "R4",
+      "scenario": "deleting only existing decision satisfies add-or-update gate",
+      "exit": 0,
+      "result": {
+        "formatVersion": 1,
+        "ok": true,
+        "count": 27,
+        "destroy": true,
+        "checks": [],
+        "errors": []
+      }
+    },
+    {
+      "id": "R5",
+      "scenario": "upgrade removes generated cookbook index entry",
+      "exit": 0,
+      "indexBefore": true,
+      "indexAfter": false,
+      "pageRetained": true,
+      "verificationErrors": [],
+      "doctorExit": 0
+    },
+    {
+      "id": "R6",
+      "scenario": "doctor from repository docs subdirectory",
+      "exit": 1,
+      "message": "[issue] 缺少必需文件：docs/AGENTS.md、docs/architecture.md、docs/development.md、decisions/README.md、tasks/README.md、reports/README.md（用 psycho-frame adopt 补齐，或 psycho-frame upgrade 一键同步）"
+    },
+    {
+      "id": "R7",
+      "scenario": "task start reuses DONE card without reopening",
+      "ok": true,
+      "status": "DONE",
+      "issues": [
+        ".worktrees/repeat-probe: 任务 repeat-probe 已 DONE 仍留着 worktree；合流后 git worktree remove .worktrees/repeat-probe"
+      ]
+    },
+    {
+      "id": "R8",
+      "scenario": "absolute POSIX link bypasses link checking",
+      "errors": []
+    },
+    {
+      "id": "R9",
+      "scenario": "release candidate is considered same version as stable",
+      "comparison": 0
+    },
+    {
+      "id": "R10",
+      "scenario": "CI verify invocation with committed destroy=on configuration",
+      "exit": 1,
+      "result": {
+        "formatVersion": 1,
+        "ok": false,
+        "count": 25,
+        "destroy": true,
+        "checks": [],
+        "errors": [
+          "毁灭模式要求改动绑定唯一任务：把当前分支名取成 task_key，或只留一个 IN_PROGRESS 任务卡",
+          "毁灭模式要求显式 --base <父分支 ref>：psycho-frame verify --base main（绝不猜 origin/<branch>）"
+        ]
+      }
+    }
+  ]
+}
