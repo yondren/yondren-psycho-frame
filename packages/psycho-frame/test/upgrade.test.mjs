@@ -174,3 +174,54 @@ test('upgrade：linked worktree 内中止，根 checkout 可升级', () => {
   assert.equal(inRoot.errors, false)
   assert.ok(inRoot.changed > 0)
 })
+
+test('upgrade：全量路径预检拒绝目录、文件及失效链接，不写计划前部文件', () => {
+  for (const kind of ['directory', 'file', 'dangling', 'backup', 'wrong-type', 'hardlink']) {
+    const { root } = skeleton()
+    const outside = tempDir()
+    write(root, 'AGENTS.md', 'keep agents')
+    write(outside, 'marker', 'outside unchanged')
+    const rel = kind === 'directory' ? 'docs' : kind === 'backup' ? '.psycho-frame-upgrade' : 'docs/architecture.md'
+    const dest = path.join(root, rel)
+    fs.rmSync(dest, { force: true, recursive: true })
+    if (kind === 'wrong-type') fs.mkdirSync(dest)
+    else if (kind === 'hardlink') fs.linkSync(path.join(outside, 'marker'), dest)
+    else fs.symlinkSync(kind === 'directory' || kind === 'backup' ? outside : path.join(outside, kind === 'dangling' ? 'missing' : 'marker'), dest)
+    const r = run({ cwd: root })
+    assert.equal(r.errors, true, kind)
+    assert.equal(r.changed, 0, kind)
+    assert.equal(fs.readFileSync(path.join(root, 'AGENTS.md'), 'utf8'), 'keep agents')
+    assert.equal(fs.readFileSync(path.join(outside, 'marker'), 'utf8'), 'outside unchanged')
+    assert.deepEqual(fs.readdirSync(outside), ['marker'])
+  }
+})
+
+test('upgrade：非法配置在计划阶段拒绝，不产生部分写入', () => {
+  const { root } = skeleton()
+  write(root, 'AGENTS.md', 'keep agents')
+  write(root, 'package.json', '{"scripts": []}')
+  const r = run({ cwd: root })
+  assert.equal(r.errors, true)
+  assert.equal(r.changed, 0)
+  assert.equal(fs.readFileSync(path.join(root, 'AGENTS.md'), 'utf8'), 'keep agents')
+  assert.equal(fs.existsSync(path.join(root, '.psycho-frame-upgrade')), false)
+})
+
+test('upgrade：自定义 cookbook 索引保持可发现、幂等且不产生 doctor 漂移', async () => {
+  const { skeletonDrift } = await import('../src/init.mjs')
+  const { root } = skeleton()
+  write(root, 'docs/cookbook/custom.md', '# Custom\n')
+  const local = '# 团队手册\n\n保留说明。\n\n- [自定义](custom.md) — 团队流程\n'
+  write(root, 'docs/cookbook/README.md', local)
+  const r = run({ cwd: root })
+  assert.equal(r.errors, false)
+  const index = fs.readFileSync(path.join(root, 'docs/cookbook/README.md'), 'utf8')
+  assert.ok(index.startsWith(local))
+  assert.match(index, /parallel-worktrees\.md/)
+  assert.equal(skeletonDrift(root).drift.includes('docs/cookbook/README.md'), false)
+  assert.equal(run({ cwd: root }).changed, 0)
+  const manifest = JSON.parse(fs.readFileSync(path.join(r.backup, 'manifest.json'), 'utf8'))
+  assert.equal(manifest.status, 'complete')
+  assert.deepEqual(manifest.applied, ['docs/cookbook/README.md'])
+  assert.equal(fs.readFileSync(path.join(r.backup, 'docs/cookbook/README.md'), 'utf8'), local)
+})

@@ -14,6 +14,8 @@ import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { walkFiles, sanitizeName, isFrameworkRepo } from './init.mjs'
 
+import { mergeCookbookIndex } from './template-merge.mjs'
+
 const templateRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'template')
 
 // 模板里的 gitignore（无点）在写入宿主时映射为 .gitignore；npm/pnpm pack 与 npm install
@@ -82,6 +84,7 @@ function mergeScripts(localText, templateText) {
     return { error: '顶层必须为对象' }
   }
   const scripts = local.scripts ?? {}
+  if (!isPlainObject(scripts)) return { error: 'scripts 必须为对象' }
   const added = []
   for (const [k, v] of Object.entries(tpl.scripts ?? {})) {
     if (!(k in scripts)) {
@@ -106,6 +109,25 @@ function isLinkedWorktree(root) {
     return abs(gitDir) !== abs(commonDir)
   } catch {
     return false
+  }
+}
+
+
+/** Reject linked targets (including dangling links) and unexpected node types before any mutation. */
+function checkTargetPath(root, rel, directory = false) {
+  let current = root
+  const segments = rel.split(path.sep)
+  for (const [i, segment] of segments.entries()) {
+    current = path.join(current, segment)
+    let stat
+    try { stat = fs.lstatSync(current) } catch (e) { if (e.code === 'ENOENT') continue; throw e }
+    if (stat.isSymbolicLink()) throw new Error(rel + ': 符号链接目标拒绝升级，请改用项目内普通文件')
+    const last = i === segments.length - 1
+    if (!last || directory) {
+      if (!stat.isDirectory()) throw new Error(rel + ': 父路径不是目录')
+    } else if (!stat.isFile() || stat.nlink > 1) {
+      throw new Error(rel + ': 目标必须为未共享硬链接的普通文件')
+    }
   }
 }
 
@@ -134,87 +156,80 @@ export function run({ target = '.', dryRun = false, cwd = process.cwd() }) {
   }
   const projectName = sanitizeName(path.basename(root))
   const files = walkFiles(templateRoot).sort()
-  const backupRoot = path.join(root, '.psycho-frame-upgrade', timestamp())
-  const changes = []
-  const errors = []
-  const kept = []
-  let backedUp = 0
-
-  for (const rel of files) {
-    const tpl = fs.readFileSync(path.join(templateRoot, rel), 'utf8').replaceAll('{{PROJECT_NAME}}', projectName)
-    const destRel = RENAMES[rel] ?? rel
-    const dest = path.join(root, destRel)
-    if (!fs.existsSync(dest)) {
-      changes.push({ rel: destRel, action: '新增' })
-      if (!dryRun) {
+  const changes = [], kept = []
+  let backupRoot = null, applied = 0
+  try {
+    // Complete structural and content preflight, including backup ownership, before writing.
+    checkTargetPath(root, '.psycho-frame-upgrade', true)
+    for (const rel of files) checkTargetPath(root, RENAMES[rel] ?? rel)
+    for (const rel of files) {
+      const destRel = RENAMES[rel] ?? rel, dest = path.join(root, destRel)
+      const tpl = fs.readFileSync(path.join(templateRoot, rel), 'utf8').replaceAll('{{PROJECT_NAME}}', projectName)
+      const local = fs.existsSync(dest) ? fs.readFileSync(dest, 'utf8') : null
+      let next = tpl, action = local === null ? '新增' : '更新（备份本地）'
+      if (local === tpl) continue
+      if (local !== null) {
+        if (rel === 'README.md') { kept.push(destRel); continue }
+        if (rel === '.psycho-frame.json' || rel === 'package.json') {
+          const merged = rel === '.psycho-frame.json' ? mergeConfig(local, tpl) : mergeScripts(local, tpl)
+          if (merged.error) throw new Error(destRel + ': ' + merged.error)
+          if (!merged.added.length) continue
+          next = merged.text
+          action = '配置合并'
+        } else if (rel === 'gitignore') {
+          const lines = new Set(local.split('\n')), missing = tpl.split('\n').filter(line => !lines.has(line))
+          if (!missing.length) continue
+          next = local.trimEnd() + '\n' + missing.join('\n') + '\n'
+          action = '配置合并'
+        } else if (rel === 'docs/cookbook/README.md') {
+          next = mergeCookbookIndex(local, tpl)
+          action = '保留用户索引，补模板条目'
+        }
+      }
+      if (next !== local) changes.push({ rel: destRel, local, next, action })
+    }
+    if (dryRun) {
+      console.log('upgrade --dry-run：' + changes.length + ' 个文件将变更')
+    } else if (changes.length) {
+      fs.mkdirSync(path.join(root, '.psycho-frame-upgrade'), { recursive: true })
+      backupRoot = fs.mkdtempSync(path.join(root, '.psycho-frame-upgrade', timestamp() + '-'))
+      const manifest = { status: 'prepared', applied: [], changes: changes.map(c => ({
+        path: c.rel, action: c.action, restore: c.local === null ? 'remove-created-file' : c.rel,
+      })) }
+      const saveManifest = () => fs.writeFileSync(path.join(backupRoot, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n')
+      for (const change of changes) {
+        if (change.local === null) continue
+        const backup = path.join(backupRoot, change.rel)
+        fs.mkdirSync(path.dirname(backup), { recursive: true })
+        fs.writeFileSync(backup, change.local, { flag: 'wx' })
+      }
+      saveManifest()
+      for (const change of changes) {
+        checkTargetPath(root, change.rel)
+        const dest = path.join(root, change.rel)
+        const now = fs.existsSync(dest) ? fs.readFileSync(dest, 'utf8') : null
+        if (now !== change.local) throw new Error(change.rel + ': 预检后内容被其他进程修改，停止升级')
         fs.mkdirSync(path.dirname(dest), { recursive: true })
-        fs.writeFileSync(dest, tpl)
+        const temp = dest + '.psycho-frame-' + path.basename(backupRoot)
+        let created = false
+        try {
+          fs.writeFileSync(temp, change.next, { flag: 'wx', mode: fs.existsSync(dest) ? fs.statSync(dest).mode : 0o644 })
+          created = true
+          fs.renameSync(temp, dest)
+        } finally { if (created && fs.existsSync(temp)) fs.unlinkSync(temp) }
+        applied += 1
+        manifest.applied.push(change.rel)
+        saveManifest()
       }
-      continue
-    }
-    const local = fs.readFileSync(dest, 'utf8')
-    if (local === tpl) continue
-    if (rel === 'README.md') {
-      kept.push(destRel)
-      continue
-    }
-    if (rel === '.psycho-frame.json') {
-      const m = mergeConfig(local, tpl)
-      if (m.error) {
-        errors.push(`.psycho-frame.json: ${m.error}（跳过合并，请先修复）`)
-        continue
-      }
-      if (m.added.length === 0) continue
-      changes.push({ rel: destRel, action: `配置合并：补入键 ${m.added.join('、')}` })
-      if (!dryRun) fs.writeFileSync(dest, m.text)
-      continue
-    }
-    if (rel === 'package.json') {
-      const m = mergeScripts(local, tpl)
-      if (m.error) {
-        errors.push(`package.json: ${m.error}（跳过合并，请先修复）`)
-        continue
-      }
-      if (m.added.length === 0) continue
-      changes.push({ rel: destRel, action: `配置合并：补入脚本 ${m.added.join('、')}` })
-      if (!dryRun) fs.writeFileSync(dest, m.text)
-      continue
-    }
-    if (rel === 'gitignore') {
-      const localLines = new Set(local.split('\n'))
-      const missing = tpl.split('\n').filter(l => !localLines.has(l))
-      if (missing.length === 0) continue
-      changes.push({ rel: destRel, action: `配置合并：补入 ${missing.length} 行` })
-      if (!dryRun) {
-        const merged = (local.endsWith('\n') ? local : local + '\n') + missing.join('\n') + '\n'
-        fs.writeFileSync(dest, merged)
-      }
-      continue
-    }
-    changes.push({ rel: destRel, action: '更新（本地改动已备份）' })
-    if (!dryRun) {
-      const bak = path.join(backupRoot, destRel)
-      fs.mkdirSync(path.dirname(bak), { recursive: true })
-      fs.writeFileSync(bak, local)
-      fs.writeFileSync(dest, tpl)
-      backedUp += 1
-    }
+      manifest.status = 'complete'
+      saveManifest()
+      console.log('upgrade 完成：' + applied + ' 个文件已变更；备份及恢复清单：' + path.relative(root, backupRoot))
+    } else console.log('upgrade 完成：骨架已是最新，无需变更')
+    for (const c of changes) console.log('  [' + c.action + '] ' + c.rel)
+    for (const rel of kept) console.log('  [保留本地] ' + rel)
+    return { changed: changes.length, errors: false, ...(backupRoot ? { backup: backupRoot } : {}) }
+  } catch (e) {
+    console.error('upgrade 中止：' + e.message + (backupRoot ? '；恢复清单：' + backupRoot : '；未写入升级计划'))
+    return { changed: applied, errors: true, ...(backupRoot ? { backup: backupRoot } : {}) }
   }
-
-  for (const e of errors) console.error(`[error] ${e}`)
-  if (errors.length > 0 && changes.length === 0) {
-    console.log('upgrade 结束：存在错误，未变更任何文件')
-  } else if (changes.length === 0) {
-    console.log(`upgrade 完成：骨架已是最新，无需变更（模板文件 ${files.length} 个）`)
-  } else if (dryRun) {
-    console.log(`upgrade --dry-run：以下 ${changes.length} 个文件将被变更：`)
-    for (const c of changes) console.log(`  [${c.action}] ${c.rel}`)
-  } else {
-    const backupNote = backedUp > 0 ? `；被覆盖的本地改动备份在 ${path.relative(root, backupRoot)}` : ''
-    console.log(`upgrade 完成：${changes.length} 个文件已变更${backupNote}`)
-    for (const c of changes) console.log(`  [${c.action}] ${c.rel}`)
-    console.log('建议运行 pnpm run doctor 与 pnpm verify:docs 确认')
-  }
-  for (const k of kept) console.log(`  [保留本地（README 属用户内容，不覆盖）] ${k}`)
-  return { changed: changes.length, errors: errors.length > 0 }
 }

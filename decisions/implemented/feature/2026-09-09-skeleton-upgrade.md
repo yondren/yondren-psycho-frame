@@ -17,11 +17,16 @@ Status: implemented
   [upgrade-guardrails](../bug-fix/2026-09-09-upgrade-guardrails.md)）。
 - 配置做增量合并，用户值永不覆盖：`.psycho-frame.json` 保留用户已有键、只补模板新增键；
   `package.json` 只补模板缺失的 scripts；`.gitignore` 只补模板新增行。
-- `--dry-run` 只预览不落盘，有变更时退出码 1，可作 CI 漂移预检。
+- `--dry-run` 只预览不落盘，配合 `--exit-code` 有变更时退出码 1，可作 CI 漂移预检。
 - 前置守卫：目标须为带骨架特征的目录，无显式目录参数时定位 git 仓库根，异常输出一行
   可读错误（见 [upgrade-guardrails](../bug-fix/2026-09-09-upgrade-guardrails.md)）。
 - 备份目录由模板 `.gitignore` 忽略；用户自有内容（decisions/tasks/reports 记录、自建
   文档页）不在模板内，天然不受影响。
+
+- 写入前完整预检目标及父级：拒绝符号链接（含失效链接）、共享硬链接和错误节点类型；
+  配置解析失败时不执行任何计划写入。cookbook 索引保留用户说明与条目，只补缺失模板链接。
+- 每次升级使用独立备份目录，包含所有被修改内容与 manifest.json 恢复清单；单文件原子替换，
+  写入前复查内容。运行时 I/O 失败可能部分完成，按清单还原备份并删除新建文件后重试。
 
 ## Alternatives considered
 
@@ -40,5 +45,5 @@ Status: implemented
 
 - 一键升级、永不手工合并；本地改动不丢失（备份 + 报告可随时回看/恢复）。
 - 配置增量合并让新配置项（如 workMode）在老项目自动落地，用户自定义值保留。
-- `--dry-run` 退出码 1 可进 CI 预检；doctor 的缺文件提示同步指向 upgrade。
+- `--dry-run --exit-code` 可进 CI 预检；doctor 的缺文件提示同步指向 upgrade。
 - 官网经 sync MAP 自动展示 upgrade 命令与用法。
