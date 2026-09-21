@@ -1,0 +1,54 @@
+Baseline: 005b69233c7b2a9a015aa904b512d3331edc280f
+Environment: macOS, Node v26.7.0, pnpm 11.20.0
+
+Tests and coverage:
+ℹ tests 162
+ℹ suites 0
+ℹ pass 162
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10052.018167
+ℹ start of coverage report
+ℹ ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ file                | line % | branch % | funcs % | uncovered lines
+ℹ ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ packages            |        |          |         | 
+ℹ  psycho-frame       |        |          |         | 
+ℹ   src               |        |          |         | 
+ℹ    change-scope.mjs |  96.38 |    81.82 |  100.00 | 71-72 103-105
+ℹ    cli.mjs          |  90.69 |    49.18 |   87.50 | 283-285 289-291 294-296 314-316 331-332 351 375-376 395-396 442-443 454-455 459-464 481-482 595-597 601-619 624-625 629-630 632-633
+ℹ    cookbook.mjs     |  98.26 |    93.02 |  100.00 | 58-59
+ℹ    destroy.mjs      |  97.52 |    89.55 |   90.00 | 106-107 150 152-153
+ℹ    init.mjs         |  96.72 |    87.80 |   87.50 | 139 151-152 191-193 215-216
+ℹ    self-update.mjs  |  56.60 |    80.43 |   66.67 | 63-64 92-93 97-99 128-149 151-160 162-171 178-209 211-226 231-235
+ℹ    upgrade.mjs      |  94.09 |    89.02 |  100.00 | 45-46 48-49 74-75 79-80 82-83 119-121
+ℹ    verify-docs.mjs  |  96.30 |    86.63 |   96.97 | 29-30 57-58 211-214 255-257 332-334
+ℹ    work-mode.mjs    | 100.00 |   100.00 |  100.00 | 
+ℹ    worktree.mjs     |  96.85 |    79.81 |  100.00 | 188-189 251 262-263 288-289 307-308 316-317
+ℹ ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ all files           |  91.57 |    83.68 |   91.50 | 
+ℹ ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ end of coverage report
+
+Website build:
+$ pnpm --filter yondren-psycho-frame-website docs:build
+$ node scripts/sync-content.mjs && vitepress build
+[sync] README.md -> src/guide/getting-started.md
+[sync] docs/cookbook/tutorial.md -> src/guide/tutorial.md
+[sync] docs/concepts.md -> src/guide/concepts.md
+[sync] docs/modes.md -> src/guide/modes.md
+[sync] docs/cookbook/submit-pr.md -> src/guide/submit-pr.md
+[sync] docs/cookbook/shared-toolchain.md -> src/guide/shared-toolchain.md
+[sync] docs/cookbook/authoring-cookbooks.md -> src/guide/authoring-cookbooks.md
+[sync] packages/psycho-frame/README.md -> src/reference/cli.md
+同步完成：8 个页面
+
+  vitepress v1.6.4
+
+- building client + server bundles...
+[32m✓[0m building client + server bundles...
+- rendering pages...
+[32m✓[0m rendering pages...
+build complete in 1.60s.
