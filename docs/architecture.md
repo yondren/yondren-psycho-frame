@@ -15,7 +15,7 @@
 - 指令层：根 `AGENTS.md` + 子树 `AGENTS.md`，Agent 按当前目录自动收到对应规则。
 - 门禁层：`packages/psycho-frame/src/`（零依赖 Node 脚本，任意目录运行都解析同一仓库根）。
 - 网站层：[website/](../website/README.md)：VitePress 官网，指南/参考由 sync-content.mjs
-  从权威文档生成，构建前运行；手写内容只有首页与站点配置。
+  从权威文档生成，构建前运行；手写展示层为首页、配置与主题。
 
 ## 流转
 

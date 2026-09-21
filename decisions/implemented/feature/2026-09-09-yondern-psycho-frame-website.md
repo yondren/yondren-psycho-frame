@@ -17,7 +17,8 @@ Status: implemented
   Markdown 生成，映射表 [content-map.mjs](../../../website/scripts/content-map.mjs) 只收
   使用者向内容：映射内目标重写为官网路径，其余仓库内目标重写为 GitHub 直链；生成物
   `website/src/guide/`、`website/src/reference/` 不入 Git，构建前整体重建。
-- 手写内容只有：首页 hero、VitePress 配置、网站说明——官网不产生第二份事实源。
+- 手写展示层包括首页 hero、VitePress 配置、自定义主题与图标/分享卡片；样式、动效和资源维护
+  归 [website/README.md](../../../website/README.md)，知识内容仍由权威文档生成。
 - 发布：GitHub Pages workflow（[docs.yml](../../../.github/workflows/docs.yml)），构建前先跑
   `psycho-frame verify`，再由 workflow 上传站点产物。
 - 单语中文首发；VitePress i18n 目录结构已预留，英文站点与英文模板一起列入后续任务。

@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- 官网分享卡片（og:image）源文件。社交平台不认 SVG，og.png 由本文件栅格化生成；
+       栅格化命令见 website/README.md（XML 注释内不能出现双连字符）。 -->
+  <defs>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#d946ef" stop-opacity="0.30" />
+      <stop offset="55%" stop-color="#6366f1" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="rule" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#a5b4fc" stop-opacity="0.55" />
+      <stop offset="100%" stop-color="#a5b4fc" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#0b0d17" />
+  <ellipse cx="920" cy="315" rx="330" ry="330" fill="url(#halo)" />
+
+  <!-- 精神力框架：已展开状态（装甲板沿角平分线滑出 92 单位） -->
+  <g transform="translate(920 315) scale(1.28) translate(-200 -200)">
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M282 200 L241 271.01 L159 271.01 L118 200 L159 128.99 L241 128.99 Z" stroke="#a5b4fc" stroke-width="1.5" />
+      <path d="M258 200 L229 250.23 L171 250.23 L142 200 L171 149.77 L229 149.77 Z" stroke="#a5b4fc" stroke-width="1.5" />
+      <path d="M234 200 L217 229.44 L183 229.44 L166 200 L183 170.56 L217 170.56 Z" stroke="#a5b4fc" stroke-width="1.8" />
+      <path d="M200 200 L282 200" stroke="#a5b4fc" stroke-opacity="0.32" stroke-width="1.2" />
+      <path d="M200 200 L241 271.01" stroke="#a5b4fc" stroke-opacity="0.32" stroke-width="1.2" />
+      <path d="M200 200 L159 271.01" stroke="#a5b4fc" stroke-opacity="0.32" stroke-width="1.2" />
+      <path d="M200 200 L118 200" stroke="#a5b4fc" stroke-opacity="0.32" stroke-width="1.2" />
+      <path d="M200 200 L159 128.99" stroke="#a5b4fc" stroke-opacity="0.32" stroke-width="1.2" />
+      <path d="M200 200 L241 128.99" stroke="#a5b4fc" stroke-opacity="0.32" stroke-width="1.2" />
+      <path d="M214 200 L207 212.12 L193 212.12 L186 200 L193 187.88 L207 187.88 Z" stroke="#f0abfc" stroke-width="2" />
+    </g>
+    <g fill="#f0abfc">
+      <circle cx="258" cy="200" r="3" />
+      <circle cx="229" cy="250.23" r="3" />
+      <circle cx="171" cy="250.23" r="3" />
+      <circle cx="142" cy="200" r="3" />
+      <circle cx="171" cy="149.77" r="3" />
+      <circle cx="229" cy="149.77" r="3" />
+      <circle cx="282" cy="200" r="3.4" />
+      <circle cx="241" cy="271.01" r="3.4" />
+      <circle cx="159" cy="271.01" r="3.4" />
+      <circle cx="118" cy="200" r="3.4" />
+      <circle cx="159" cy="128.99" r="3.4" />
+      <circle cx="241" cy="128.99" r="3.4" />
+    </g>
+    <g fill="#22243a" stroke="#a5b4fc" stroke-opacity="0.38" stroke-width="1.4" stroke-linejoin="round">
+      <path transform="translate(92 0)" d="M200 200 L272.75 158 L272.75 242 Z" />
+      <path transform="translate(46 79.67)" d="M200 200 L272.75 242 L200 284 Z" />
+      <path transform="translate(-46 79.67)" d="M200 200 L200 284 L127.25 242 Z" />
+      <path transform="translate(-92 0)" d="M200 200 L127.25 242 L127.25 158 Z" />
+      <path transform="translate(-46 -79.67)" d="M200 200 L127.25 158 L200 116 Z" />
+      <path transform="translate(46 -79.67)" d="M200 200 L200 116 L272.75 158 Z" />
+    </g>
+  </g>
+
+  <!-- 文案区 -->
+  <g font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif">
+    <text x="80" y="238" font-size="52" font-weight="700" fill="#e8eaf6" letter-spacing="0.5">yondren-psycho-frame</text>
+    <text x="80" y="296" font-size="32" fill="#a5b4fc">见山处精神力骨架</text>
+    <path d="M80 342 L600 342" stroke="url(#rule)" stroke-width="1.5" />
+    <text x="80" y="398" font-size="23" fill="#9aa0b5">把事实、决策、任务、报告四层知识放进 Git</text>
+    <text x="80" y="438" font-size="23" fill="#9aa0b5">Agent 共享同一份记忆 · 本地多 worktree 并行</text>
+    <text x="80" y="478" font-size="23" fill="#9aa0b5">一条命令挡住文档腐化</text>
+    <text x="80" y="566" font-size="19" fill="#6b7280">psycho-frame.yondren.com · MIT</text>
+  </g>
+</svg>

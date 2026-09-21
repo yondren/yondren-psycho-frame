@@ -1,0 +1,30 @@
+/* 官网品牌变量：默认主题的按钮、链接、侧边栏高亮都读 --vp-c-brand-*，
+   这里是全站唯一的调色真源。 */
+:root {
+  --vp-c-brand-1: #4f46e5;
+  --vp-c-brand-2: #6366f1;
+  --vp-c-brand-3: #4338ca;
+  --vp-c-brand-soft: rgba(99, 102, 241, 0.14);
+}
+
+.dark {
+  --vp-c-brand-1: #a5b4fc;
+  --vp-c-brand-2: #818cf8;
+  --vp-c-brand-3: #c7d2fe;
+  --vp-c-brand-soft: rgba(129, 140, 248, 0.16);
+}
+
+/* 首页 hero 舞台调色板：hero 自带暗色底，两套主题下表现一致，所以刻意不放进 .dark。
+   装甲本体设定为白色，但静止时处于阴影里，所以填充取深蓝灰、由扫光（screen 混合）推到接近白——
+   白甲动态范围大，"被点亮"才看得出。--pf-seam 是缝隙里精神力框架的发光色。 */
+:root {
+  --pf-stage-1: #0d1122;
+  --pf-stage-2: #05060e;
+  --pf-line: #5b68b8;
+  --pf-line-lit: #d6dcff;
+  --pf-hot: #f5a9ff;
+  --pf-seam: #f5a9ff;
+  --pf-armor-fill: #262c44;
+  --pf-armor-edge: #7c88c4;
+  --pf-frame-fill: #0b0f1e;
+}
