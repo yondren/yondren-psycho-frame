@@ -270,6 +270,8 @@ node reports/project-assessment/repro.mjs
 
 ### 合流与剩余事项
 
-报告交付在 project-assessment 分支及独立 worktree，未合流、未推送。本次是评估请求，产品修复与合流留待后续决定。任务卡保留 IN_PROGRESS，注明评估交付完成、集成未执行，以符合“DONE 不留 worktree”的纪律。
+2026-09-21 用户要求统一接管收尾后，评估及六项修复计划从 project-assessment 合入 main，
+对应 worktree 和任务分支已删除；任务置 DONE，未推送。接管详情见
+[收尾报告](workspace-closeout.md)。产品修复仍为 proposed，等待后续任务派发。
 
 评估没有剩余阻塞；后续工作是审阅并按优先级落实加固。

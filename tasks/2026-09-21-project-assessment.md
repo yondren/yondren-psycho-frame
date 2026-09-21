@@ -1,7 +1,7 @@
 # 项目综合评估
 
 - task_key: project-assessment
-- status: IN_PROGRESS
+- status: DONE
 - created: 2026-09-21
 - updated: 2026-09-21
 - report: [reports/project-assessment.md](../reports/project-assessment.md)
@@ -16,4 +16,4 @@
 
 - [IN_PROGRESS] 2026-09-21 worktree `project-assessment` 内开工。
 - 评估报告、十个隔离探针与待审加固提案已交付；未修改产品代码。
-- 分支 `project-assessment` 未合流、未推送：本次评估不包含集成，保留 worktree 供审阅。
+- [DONE] 2026-09-21 用户要求统一收尾，评估和六项修复计划合入 main，worktree 与分支已删除；未推送。
