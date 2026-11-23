@@ -9,3 +9,4 @@
 - [shared-toolchain.md](shared-toolchain.md) — 共享工具链：一套就够，全员共用
 - [fleet-mode.md](fleet-mode.md) — 舰队模式：主线程指挥、子代理并行的委派纪律
 - [skeleton-upgrade.md](skeleton-upgrade.md) — 骨架升级：原地执行与并发收束
+- [document-maintenance.md](document-maintenance.md) — 整理项目文档

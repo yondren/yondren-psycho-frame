@@ -5,6 +5,8 @@
 
 - [六项加固验收](hardening-completion.md)（F01—F12 修复、验证和收尾）。
 
+- [文档整理提示词验收](document-maintenance.md)。
+
 单次执行的过程产物，命名 `reports/<task_key>.md`。同一任务多轮迭代继续更新同一份，
 不建日期副本。报告是过程记录，不是长期事实；长期结论去 docs/ 与 decisions/。
 任务规则见 [tasks/README.md](../tasks/README.md)。
