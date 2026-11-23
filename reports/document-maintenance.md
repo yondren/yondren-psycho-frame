@@ -1,7 +1,7 @@
 # 文档整理提示词执行报告
 
 - task_key: document-maintenance
-- 状态: IN_PROGRESS
+- 状态: DONE
 
 ## 交付
 
@@ -23,4 +23,4 @@ Cookbook 索引及预算。
 
 ## 合流状态
 
-任务分支 `document-maintenance` 等待按 `merge=ask` 确认合流到本地 `main`。
+任务分支 `document-maintenance` 已合入本地 `main`（`fbe876e`），独立 worktree 已移除。
