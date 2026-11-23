@@ -1,7 +1,7 @@
 # 骨架 0.6.0 发布报告
 
 - task_key: release-060
-- 状态: IN_PROGRESS
+- 状态: DONE
 
 ## 范围
 
@@ -10,9 +10,15 @@
 
 ## 验证
 
-- 发布前的 28 个提交通过 CI 内容门禁，GitHub `main` 和 Codeup `mirror` 均推进至 `3257fa1`。
-- 临时目录中打包两份 0.6.0 候选产物，完成创建、安装和任务收尾的教程冒烟。
+- 文档门禁、内容快照、当前源码测试、doctor、打包元数据与摘要校验均通过。
+- 使用两份正式 tarball 完成创建、安装和任务收尾的教程冒烟。
+- 两份 tarball 的 registry `dist.integrity` 与受测产物一致。
 
 ## 发布
 
-按 [双包发布手册](../docs/cookbook/release.md) 准备并验证正式产物，之后核对 npm 版本和摘要。
+按 [双包发布手册](../docs/cookbook/release.md) 完成发布。
+
+- `yondren-psycho-frame@0.6.0` 的 `latest` 已发布。
+- `create-yondren-psycho-frame@0.6.0` 的 `latest` 已发布。
+- 发布提交为 `5b20a15`，标签为 `v0.6.0`。
+- GitHub `main`、GitHub `v0.6.0` 和 Codeup `mirror` 均指向发布提交。
