@@ -6,6 +6,8 @@
 
 - [CI 与消费方教程合同](implemented/testing/2026-09-21-ci-onboarding-contract.md)。
 
+- [按需整理文档](implemented/process/2026-11-23-document-maintenance-prompt.md)。
+
 每个"为什么这么定 + 放弃了什么"的事实记一条。路径编码
 `{生命周期}/{类别}/yyyy-mm-dd-主题.md`，随状态变化在生命周期目录间移动。
 交叉引用只用相对 Markdown 链接，不用纯文本或编号，门禁机械校验。
